@@ -10,166 +10,147 @@
 using namespace cv;
 using namespace std;
 
-#define MAX_COUNT = 500;
-
+/* Creadora */
 OpticalFlow::OpticalFlow() {
+	this->size = 0;
 }
 
+/* Funció que calcula el mòdul d'un vector a partir del seu punt origen i el seu punt destí */
 int OpticalFlow::calculaModul(Point p, Point q) {
+	// Calculem les dues components del vector
 	int u = q.x - p.x;
 	int v = q.y - p.y;
+	// Calculem el mòdul del vector
 	int mod = sqrt(u*u + v*v);
 	return mod;
 }
 
+/* Funció que dibuixa una fletxa des de el punt p fins al punt q sobre la imatge "image" */
 void OpticalFlow::drawArrow(Mat image, Point p, Point q, Scalar color, int arrowMagnitude = 2, int thickness=1, int line_type=8, int shift=0) {
-	//Draw the principle line
+	// Calculem el color que tindrà la fletxa, segons el mòdul que tingui el vector
 	int mod = calculaModul(p, q);
 	if(mod >= 2) color = Scalar(0,0,255); // Vermell
 	else if(mod >= 1 && mod < 2) color = Scalar(0,255,0); // Verd
 	else color = Scalar(255,0,0); // Blau
-
+	// Dibuixem la línia principal, de p a q
     line(image, p, q, color, thickness, line_type, shift);
     const double PI = 3.141592653;
-    //compute the angle alpha
+    // Calculem l'angle alpha
     double angle = atan2((double)p.y-q.y, (double)p.x-q.x);
-    //compute the coordinates of the first segment
+    // Calculem les coordenades del primer segment
     p.x = (int) ( q.x +  arrowMagnitude * cos(angle + PI/4));
     p.y = (int) ( q.y +  arrowMagnitude * sin(angle + PI/4));
-    //Draw the first segment
+    // Dibuixem el primer segment
     line(image, p, q, color, thickness, line_type, shift);
-    //compute the coordinates of the second segment
+    // Calculem les coordenades del segon segment
     p.x = (int) ( q.x +  arrowMagnitude * cos(angle - PI/4));
     p.y = (int) ( q.y +  arrowMagnitude * sin(angle - PI/4));
-    //Draw the second segment
+    // Dibuixem el segon segment
     line(image, p, q, color, thickness, line_type, shift);
 }
 
-Mat OpticalFlow::calculaPuntsClau(Mat frame1, Mat frame2) {
-	Mat result(frame1);
-	// Primer calculem la imatge diferencia (en valor absolut) entre frame1 i frame2 i seleccionem els punts en que supera un cert llindar
-	absdiff(frame1, frame2, result);
-	for (int i = 0; i < result.size().height; ++i) { 
-		for (int j = 1; j < result.size().width; ++j) { 
-			Scalar intensity = result.at<uchar>(i, j);
-			if (intensity[0] <= 25) result.at<uchar>(i,j) = 0;
-		}
-	}
+/* Funció que calcula una màscara a partir de la binarització d'una imatge en escala de grisos */
+Mat OpticalFlow::calcularMascara(Mat frame_d) {
+	// Inicialitzem els valors necessaris
+	Mat result;
+	double thresh = 1;
+	double maxval = 255;
+	// Binaritzem la imatge. Només volem separar entre els valors que són 0 (negre) dels que no ho són
+	threshold(frame_d, result, thresh, maxval, THRESH_BINARY);
+	imshow("Màscara", result);
 	return result;
 }
 
-void OpticalFlow::calcularOpticalFlow3D(Mat& frame1, Mat& frame2) {
+/* Funció que calcula l'optical flow 3D entre dos frames consecutius */
+void OpticalFlow::calcularOpticalFlow3D(Mat& frame1, Mat& frame2, Mat frame1_d, Mat frame2_d) {
+	// Comprovem que les imatges tinguin la mateixa mida
 	if(frame1.rows != frame2.rows && frame1.cols != frame2.cols) {
-		printf("Images should be of equal sizes\n");
+		printf("Les imatges han de ser de la mateixa mida\n");
 		exit(1);
 	}
+
+	// Comprovem que les imatges siguin del mateix tipus
 	if(frame1.type() != 16 || frame2.type() != 16) {
-		printf("Images should be of equal type CV_8UC3\n");
+		printf("Les imatges han de ser del mateix tipus\n");
 	}
 	
-	printf("Read two images of size [rows = %d, cols = %d]\n", frame1.rows, frame1.cols);
+	printf("Tamany de les imatges: [rows = %d, cols = %d]\n", frame1.rows, frame1.cols);
 
+	// Comencem a comptar el temps
 	float start = (float)getTickCount();
 
 	Mat grayFrames1, rgbFrames1, grayFrames2, rgbFrames2;
-	Mat opticalFlow = Mat(frame1.rows,frame1.cols, CV_32FC3);
-
-	Size img_sz = frame1.size();
-    Mat imgC(img_sz,1);
 
 	vector<Point2f> points1;
 	vector<Point2f> points2;
 
 	Point2f diff;
 
+	// Inicialitzem valors per calcular l'optical flow
 	vector<uchar> status;
 	vector<float> err;
-
-	RNG rng(12345);
-	Scalar color = Scalar(rng.uniform(0, 255), rng.uniform(0, 255),
-	rng.uniform(0, 255));
-	bool needToInit = true;
-
 	int i, k;
 	TermCriteria termcrit(CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, 20, 0.03);
-	Size subPixWinSize(10, 10), winSize(31, 31);
-	namedWindow("Raw video", CV_WINDOW_AUTOSIZE);
+	Size subPixWinSize(10, 10), winSize(45, 45);
+	namedWindow("Resultat Optical Flow 2D", CV_WINDOW_AUTOSIZE);
 	double angle;
 
+	// Passem els frames RGB a escala de grisos
 	frame1.copyTo(rgbFrames1);
 	cvtColor(rgbFrames1, grayFrames1, CV_BGR2GRAY);
 
 	frame2.copyTo(rgbFrames2);
 	cvtColor(rgbFrames2, grayFrames2, CV_BGR2GRAY);
 
-	/*Mat C = calculaPuntsClau(grayFrames1, grayFrames2);
-	cout << "Punts clau calculats..." << endl;
-	points1.clear();
-	for(int i = 0; i < C.size().height; ++i) {
-		for(int j = 0; j < C.size().width; ++j) {
-			Scalar intensity = C.at<uchar>(i, j);
-			if(intensity[0] != 0) {
-				Point2f aux(i, j);
-				points1.push_back(aux);
-			}
-		}
-	}
-
-	cout << "Punts clau calculats222222..." << endl;
-	cout << "Nombre de punts: " << points1.size() << endl;*/
-	//for(int i = 0; i < points1.size(); ++i) cout << "Punt " << (int)i << ": " << (int)points1[i].x << "    " << (int)points1[i].y << endl;
+	// Càlcul de la màscara que delimita la regió d'interès on buscar punts
+	Mat mask = calcularMascara(frame1_d);
+	cout << "Màscara calculada" << endl;
 
 	// Shi/Tomasi
-	goodFeaturesToTrack(grayFrames1, points1, 500, 0.01, 5, Mat(), 3, 0, 0.04);
-	goodFeaturesToTrack(grayFrames2, points2, 500, 0.01, 5, Mat(), 3, 0, 0.04);
+	goodFeaturesToTrack(grayFrames1, points1, 500, 0.01, 5, mask, 3, 0, 0.04);
+	goodFeaturesToTrack(grayFrames2, points2, 500, 0.01, 5, mask, 3, 0, 0.04);
 
-	cout << "Shi tomasi acabat..." << endl;
+	cout << "Shi tomasi acabat" << endl;
 
-	cout << "\n\n\nCalculating  calcOpticalFlowPyrLK\n\n\n\n\n";
-	calcOpticalFlowPyrLK(grayFrames1, grayFrames2, points2, points1, status, err, winSize, 3, termcrit, 0, 0.001);
-	int u = 0;
+	cout << "Calculant Optical Flow 2D..." << endl;
+
+	// Optical Flow Lukas-Kanade
+	calcOpticalFlowPyrLK(grayFrames1, grayFrames2, points1, points2, status, err, winSize, 3, termcrit, 0, 0.001);
+
+	// Dibuixar les fletxes per veure el resultat de l'optical flow
 	for( int i=0; i < status.size(); i++ ){
-        if(status[i] == 1) {
-			if(err[i] > 2) {
-				++u;
 				Point p0( ceil( points1[i].x ), ceil( points1[i].y ) );
 				Point p1( ceil( points2[i].x ), ceil( points2[i].y ) );
 				drawArrow(rgbFrames1, p0, p1, CV_RGB(255, 0, 0));
-			}
-		}
     }
-	cout << "Points1: " << (int)points1.size() << endl;
-	cout << "Points2: " << (int)points2.size() << endl;
-	cout << "Nombre de arrows dibuixades: " << (int)u << endl;
-	imshow("Raw video", rgbFrames1);
-	//imshow("Optical Flow Window", C);
-	printf("calcOpticalFlowSF : %lf sec\n", (getTickCount() - start) / getTickFrequency());
-}
 
-
-
-void OpticalFlow::writeOpticalFlowToFile(Mat& flow, FILE* file) {
-	int cols = flow.cols;
-	int rows = flow.rows;
-
-	fprintf(file, "PIEH");
-
-	if(fwrite(&cols, sizeof(int), 1, file) != 1 || fwrite(&rows, sizeof(int), 1, file) != 1) {
-		printf("writeOpticalFlowToFile : problem writing header\n");
-		exit(1);
-	}
-	
-	for(int i = 0; i < rows; ++i) {
-		for(int j = 0; j < cols; ++j) {
-			Vec2f flow_at_point = flow.at<Vec2f>(i, j);
-
-			if(fwrite(&(flow_at_point[0]), sizeof(float), 1, file) != 1 || fwrite(&(flow_at_point[1]), sizeof(float), 1, file) != 1) {
-				printf("writeOpticalFlowToFile : problem writing data\n");
-				exit(1);
-			}
+	cout << "Calculant Optical Flow 3D..." << endl;
+	// Per cada punt on hem calculat l'optical flow, calculem la component z amb la informació de la imatge de profunditat
+	int grayLevel1, grayLevel2 = 0;
+	for(int i = 0; i < points2.size(); ++i) {
+		grayLevel1 = frame1_d.at<uchar>(int(points1[i].y), int(points1[i].x));
+		grayLevel2 = frame2_d.at<uchar>(int(points2[i].y), int(points2[i].x));
+		// AQUI FALTA CONVERTIR EL NIVELL DE GRIS A PIXEL
+		// Descartem aquells punts que cauen fora de la imatge registrada per la càmera de profunditats
+		if(grayLevel1 != 0 && grayLevel2 != 0) {
+			cout << "GrayLevel1: " << grayLevel1 << "   , GrayLevel2: " << grayLevel2 << endl;
+			Point3i inici(int(points1[i].x), int(points1[i].y), grayLevel1);
+			Point3i desp(int(points2[i].x) - int(points1[i].x), int(points2[i].y) - int(points1[i].y), grayLevel2 - grayLevel1);
+			this->OpticalFlow3DInici.push_back(inici);
+			this->OpticalFlow3DDespl.push_back(desp);
+			this->size = (this->size) + 1;
 		}
 	}
+	imshow("Resultat Optical Flow 2D", rgbFrames1);
+	cout << "Número de vectors a l'optical flow 3D: " << this->size << endl;
+
+	printf("Temps total : %lf sec\n", (getTickCount() - start) / getTickFrequency());
 }
+
+int OpticalFlow::getSize() {
+	return this->size;
+}
+
 
 
 

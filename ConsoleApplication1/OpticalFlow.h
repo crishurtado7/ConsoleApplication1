@@ -7,14 +7,18 @@ using namespace std;
 class OpticalFlow {
 	public:
 		// Atributs
-			// Vectors de fluxe òptic
-			// Quantitat de vectors
+			vector<Point3i> OpticalFlow3DInici;
+			vector<Point3i> OpticalFlow3DDespl;
+			int size;
 		// Funcions
 			OpticalFlow();
 			void drawArrow(Mat image, Point p, Point q, Scalar color, int arrowMagnitude, int thickness, int line_type, int shift);
 			Mat calculaPuntsClau(Mat frame1, Mat frame2);
-			void calcularOpticalFlow3D(Mat& frame1, Mat& frame2);
-			void writeOpticalFlowToFile(Mat& flow, FILE* file);
+			void CannyThreshold(int, void*);
+			Mat aplicarCanny(Mat frame1, Mat frame1_d);
+			Mat calcularMascara(Mat frame_d);
+			void calcularOpticalFlow3D(Mat& frame1, Mat& frame2, Mat frame1_d, Mat frame2_d);
+			int getSize();
 			
 	private:
 			int calculaModul(Point p, Point q);

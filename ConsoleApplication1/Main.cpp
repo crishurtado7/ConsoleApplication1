@@ -10,23 +10,20 @@
 
 	// Llegim el primer frame	
 	printf("%s \n", "Llegint imatge A...");
-	Mat imageA;
-	imageA = imread("cut_0.png", IMREAD_COLOR); 
+	Mat imageA, depthA;
+	imageA = imread("cut_91.png", IMREAD_COLOR); 
+	depthA = imread("cut_d_91.png", IMREAD_GRAYSCALE);
 
 	// Llegim el segon frame
 	printf("%s \n", "Llegint imatge B...");
-	Mat imageB;
-	imageB = imread("cut_1.png", IMREAD_COLOR);
+	Mat imageB, depthB;
+	imageB = imread("cut_92.png", IMREAD_COLOR);
+	depthB = imread("cut_d_92.png", IMREAD_GRAYSCALE);
 
 	// Computem l'optical flow
 	printf("%s \n", "Computant OpticalFlow...");
 	OpticalFlow OF = OpticalFlow();
-	OF.calcularOpticalFlow3D(imageA, imageB);
-
-	// Creem una finestra per mostrar el resultat
-	//printf("%s \n", "Creant nova finestra...");
-	//cvNamedWindow( "Optical Flow", WINDOW_AUTOSIZE ); // Create a window for display.
-	//imshow("Optical Flow", flow ); // Show our image inside it.
+	OF.calcularOpticalFlow3D(imageA, imageB, depthA, depthB);
 
 	waitKey(0); // Wait for a keystroke in the window
 	return 0;
