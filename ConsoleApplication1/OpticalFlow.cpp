@@ -16,7 +16,7 @@ OpticalFlow::OpticalFlow() {
 }
 
 /* Funció que calcula el mòdul d'un vector a partir del seu punt origen i el seu punt destí */
-int OpticalFlow::calculaModul(Point p, Point q) {
+float OpticalFlow::calculaModul(Point p, Point q) {
 	// Calculem les dues components del vector
 	int u = q.x - p.x;
 	int v = q.y - p.y;
@@ -130,10 +130,9 @@ void OpticalFlow::calcularOpticalFlow3D(Mat& frame1, Mat& frame2, Mat frame1_d, 
 	for(int i = 0; i < points2.size(); ++i) {
 		grayLevel1 = frame1_d.at<uchar>(int(points1[i].y), int(points1[i].x));
 		grayLevel2 = frame2_d.at<uchar>(int(points2[i].y), int(points2[i].x));
-		// AQUI FALTA CONVERTIR EL NIVELL DE GRIS A PIXEL
+		// AQUI FALTA CONVERTIR EL NIVELL DE GRIS A PIXEL OR SOMETHING
 		// Descartem aquells punts que cauen fora de la imatge registrada per la càmera de profunditats
-		if(grayLevel1 != 0 && grayLevel2 != 0) {
-			cout << "GrayLevel1: " << grayLevel1 << "   , GrayLevel2: " << grayLevel2 << endl;
+		if(grayLevel1 != 0 && grayLevel2 != 0 && calculaModul(points1[i],points2[i]) < 1) {
 			Point3i inici(int(points1[i].x), int(points1[i].y), grayLevel1);
 			Point3i desp(int(points2[i].x) - int(points1[i].x), int(points2[i].y) - int(points1[i].y), grayLevel2 - grayLevel1);
 			this->OpticalFlow3DInici.push_back(inici);
@@ -144,13 +143,23 @@ void OpticalFlow::calcularOpticalFlow3D(Mat& frame1, Mat& frame2, Mat frame1_d, 
 	imshow("Resultat Optical Flow 2D", rgbFrames1);
 	cout << "Número de vectors a l'optical flow 3D: " << this->size << endl;
 
-	printf("Temps total : %lf sec\n", (getTickCount() - start) / getTickFrequency());
+	printf("Temps total Optical Flow: %lf sec\n", (getTickCount() - start) / getTickFrequency());
 }
 
+/* Funció que retorna la mida dels vectors d'Optical Flow */
 int OpticalFlow::getSize() {
 	return this->size;
 }
 
+/* Funció que retorna el vector de posicions dels punts calculats a l'Optical Flow */
+vector<Point3i> OpticalFlow::getOpticalFlow3DInici() {
+	return this->OpticalFlow3DInici;
+}
+
+/* Funció que retorna el vector de desplaçaments dels punts calculats a l'Optical Flow */
+vector<Point3i> OpticalFlow::getOpticalFlow3DDespl() {
+	return this->OpticalFlow3DDespl;
+}
 
 
 
