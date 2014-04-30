@@ -6,7 +6,7 @@ using namespace std;
 
 const int MOVIMENT_PLA = 4;
 const int MOVIMENT_ALT = 3;
-const int ESPAI_X = 5;
+const int ESPAI_X = 3;
 const int ESPAI_Y = 3;
 const int ESPAI_ALT = 3;
 
@@ -22,6 +22,7 @@ class HistogramaOF {
 		double calculaModul(Point3i p);
 		int discretitzaMovimentPla(Point3i despl);
 		int discretitzaMovimentAlt(Point3i despl);
+		void representaHistograma();
 		void calcularHistogramaOF(Mat& frame1, Mat& frame2, Mat frame1_d, Mat frame2_d);
 		// Algun mètode per calcular histogrames acumulats??
 

@@ -103,28 +103,27 @@ void OpticalFlow::calcularOpticalFlow3D(Mat& frame1, Mat& frame2, Mat frame1_d, 
 	cvtColor(rgbFrames2, grayFrames2, CV_BGR2GRAY);
 
 	// Càlcul de la màscara que delimita la regió d'interès on buscar punts
+	float startMasc = (float)getTickCount();
 	Mat mask = calcularMascara(frame1_d);
 	cout << "Màscara calculada" << endl;
+	printf("Temps càlcul màscara: %lf sec\n", (getTickCount() - startMasc) / getTickFrequency());
 
 	// Shi/Tomasi
-	goodFeaturesToTrack(grayFrames1, points1, 500, 0.01, 5, mask, 3, 0, 0.04);
-	goodFeaturesToTrack(grayFrames2, points2, 500, 0.01, 5, mask, 3, 0, 0.04);
-
+	float startShiTom = (float)getTickCount();
+	goodFeaturesToTrack(grayFrames1, points1, 200, 0.01, 5, mask, 3, 0, 0.04);
 	cout << "Shi tomasi acabat" << endl;
+	cout << "Punts calculats al Shi tomasi: " << points1.size() << endl;
+	printf("Temps càlcul punts Shi tomasi: %lf sec\n", (getTickCount() - startShiTom) / getTickFrequency());
 
 	cout << "Calculant Optical Flow 2D..." << endl;
 
 	// Optical Flow Lukas-Kanade
+	float startOF2D = (float)getTickCount();
 	calcOpticalFlowPyrLK(grayFrames1, grayFrames2, points1, points2, status, err, winSize, 3, termcrit, 0, 0.001);
-
-	// Dibuixar les fletxes per veure el resultat de l'optical flow
-	for( int i=0; i < status.size(); i++ ){
-				Point p0( ceil( points1[i].x ), ceil( points1[i].y ) );
-				Point p1( ceil( points2[i].x ), ceil( points2[i].y ) );
-				drawArrow(rgbFrames1, p0, p1, CV_RGB(255, 0, 0));
-    }
+	printf("Temps càlcul Optical Flow 2D: %lf sec\n", (getTickCount() - startOF2D) / getTickFrequency());
 
 	cout << "Calculant Optical Flow 3D..." << endl;
+	float startOF3D = (float)getTickCount();
 	// Per cada punt on hem calculat l'optical flow, calculem la component z amb la informació de la imatge de profunditat
 	int grayLevel1, grayLevel2 = 0;
 	for(int i = 0; i < points2.size(); ++i) {
@@ -132,16 +131,25 @@ void OpticalFlow::calcularOpticalFlow3D(Mat& frame1, Mat& frame2, Mat frame1_d, 
 		grayLevel2 = frame2_d.at<uchar>(int(points2[i].y), int(points2[i].x));
 		// AQUI FALTA CONVERTIR EL NIVELL DE GRIS A PIXEL OR SOMETHING
 		// Descartem aquells punts que cauen fora de la imatge registrada per la càmera de profunditats
-		if(grayLevel1 != 0 && grayLevel2 != 0 && calculaModul(points1[i],points2[i]) < 1) {
+		// TREURE LA ÚLTIMA CONDICIÓ!! (O NO)
+		if(grayLevel1 != 0 && grayLevel2 != 0 && calculaModul(points1[i],points2[i]) >= 2) {
+			// Dibuixar les fletxes per veure el resultat de l'optical flow
+			Point p0( ceil( points1[i].x ), ceil( points1[i].y ) );
+			Point p1( ceil( points2[i].x ), ceil( points2[i].y ) );
+			drawArrow(rgbFrames1, p0, p1, CV_RGB(255, 0, 0));
+			// Creem el punt 3D
+			// AQUI FALTARIA CONVERTIR EL PUNT AL SISTEMA DE COORDENADES DE LA PERSONA
 			Point3i inici(int(points1[i].x), int(points1[i].y), grayLevel1);
 			Point3i desp(int(points2[i].x) - int(points1[i].x), int(points2[i].y) - int(points1[i].y), grayLevel2 - grayLevel1);
 			this->OpticalFlow3DInici.push_back(inici);
 			this->OpticalFlow3DDespl.push_back(desp);
 			this->size = (this->size) + 1;
+			//cout << "Punt " << i << ": " << int(points2[i].x) - int(points1[i].x) << "    " << int(points2[i].y) - int(points1[i].y) << endl;
 		}
 	}
 	imshow("Resultat Optical Flow 2D", rgbFrames1);
 	cout << "Número de vectors a l'optical flow 3D: " << this->size << endl;
+	printf("Temps càlcul Optical Flow 3D: %lf sec\n", (getTickCount() - startOF3D) / getTickFrequency());
 
 	printf("Temps total Optical Flow: %lf sec\n", (getTickCount() - start) / getTickFrequency());
 }

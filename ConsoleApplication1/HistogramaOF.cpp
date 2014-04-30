@@ -85,6 +85,41 @@ int HistogramaOF::discretitzaMovimentAlt(Point3i despl) {
 	return pos;
 }
 
+void HistogramaOF::representaHistograma() {
+	float start = (float)getTickCount();
+	int rows = ESPAI_X*MOVIMENT_PLA*6 + 2*ESPAI_X + 1;
+	int cols = ESPAI_ALT*ESPAI_Y*MOVIMENT_ALT*6 + 2*ESPAI_ALT*ESPAI_Y + 1;
+	int pos_x = 2; 
+	int pos_y = 0;
+	int nivell = 0;
+	Scalar s;
+	Mat representacio = Mat::zeros(cols, rows, CV_8UC3);
+	for(int i = 0; i < ESPAI_ALT; ++i) {
+		if(i == 0) s = Scalar(0,0,255);
+		else if(i == 1) s = Scalar(0,255,255);
+		else s = Scalar(0,255,0);
+		nivell = i*(ESPAI_Y*MOVIMENT_ALT*6 + ESPAI_Y*2);
+		pos_y = nivell + 2;
+		pos_x = 2;
+		for(int j = 0; j < ESPAI_Y; ++j) {
+			for(int k = 0; k < ESPAI_X; ++k) {
+				pos_x = k*(MOVIMENT_PLA*6 + 2) + 2;
+				pos_y = nivell + j*(ESPAI_Y*6 + 2) + 2;
+				for(int u = 0; u < MOVIMENT_ALT; ++u) {
+					for(int v = 0; v < MOVIMENT_PLA; ++v) {
+						rectangle(representacio, Point(pos_x, pos_y), Point(pos_x+4, pos_y+4), s, -1, 8);
+						pos_x += 6;
+					}
+					pos_x = k*(MOVIMENT_PLA*6 + 2) + 2;
+					pos_y += 6;
+				}
+			} 
+		}
+	}
+	imshow("Representació Histograma", representacio);
+	printf("Temps representació histograma: %lf sec\n", (getTickCount() - start) / getTickFrequency());
+}
+
 /* Funció que calcula l'histograma d'Optical Flow entre dos frames consecutius */
 void HistogramaOF::calcularHistogramaOF(Mat& frame1, Mat& frame2, Mat frame1_d, Mat frame2_d) {
 	cout << "Calculant Histograma Optical Flow..." << endl;
@@ -114,5 +149,6 @@ void HistogramaOF::calcularHistogramaOF(Mat& frame1, Mat& frame2, Mat frame1_d, 
 		}
 		cout << endl;
 	}
+	representaHistograma();
 	printf("Temps total Histograma Optical Flow: %lf sec\n", (getTickCount() - start) / getTickFrequency());
 }
