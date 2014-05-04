@@ -1,5 +1,4 @@
-#include <iostream>
-#include <opencv2/core/core.hpp>ç
+#include <opencv2/core/core.hpp>
 
 using namespace cv;
 using namespace std;
@@ -10,6 +9,7 @@ class OpticalFlow {
 		vector<Point3i> OpticalFlow3DInici;
 		vector<Point3i> OpticalFlow3DDespl;
 		int size;
+		Point3i origen;
 		// Funcions
 		OpticalFlow();
 		void drawArrow(Mat image, Point p, Point q, Scalar color, int arrowMagnitude, int thickness, int line_type, int shift);

@@ -6,6 +6,7 @@
 #include "OpticalFlow.h"
 #include <math.h>
 #include <cstdio>
+#include "Constants.h"
 
 using namespace cv;
 using namespace std;
@@ -13,6 +14,9 @@ using namespace std;
 /* Creadora */
 OpticalFlow::OpticalFlow() {
 	this->size = 0;
+	origen.x = ORIGENX;
+	origen.y = ORIGENY;
+	origen.z = ORIGENZ;
 }
 
 /* Funció que calcula el mòdul d'un vector a partir del seu punt origen i el seu punt destí */
@@ -57,6 +61,10 @@ Mat OpticalFlow::calcularMascara(Mat frame_d) {
 	double maxval = 255;
 	// Binaritzem la imatge. Només volem separar entre els valors que són 0 (negre) dels que no ho són
 	threshold(frame_d, result, thresh, maxval, THRESH_BINARY);
+	/*Mat aux;
+	cvtColor(result, aux, CV_GRAY2RGB);
+	Point p(180, 200);
+	drawArrow(aux, p, p, Scalar(0, 0, 255));*/
 	imshow("Màscara", result);
 	return result;
 }
@@ -126,12 +134,13 @@ void OpticalFlow::calcularOpticalFlow3D(Mat& frame1, Mat& frame2, Mat frame1_d, 
 	float startOF3D = (float)getTickCount();
 	// Per cada punt on hem calculat l'optical flow, calculem la component z amb la informació de la imatge de profunditat
 	int grayLevel1, grayLevel2 = 0;
+	int xA, yA, zA, xB, yB, zB;
 	for(int i = 0; i < points2.size(); ++i) {
 		grayLevel1 = frame1_d.at<uchar>(int(points1[i].y), int(points1[i].x));
 		grayLevel2 = frame2_d.at<uchar>(int(points2[i].y), int(points2[i].x));
 		// AQUI FALTA CONVERTIR EL NIVELL DE GRIS A PIXEL OR SOMETHING
 		// Descartem aquells punts que cauen fora de la imatge registrada per la càmera de profunditats
-		// TREURE LA ÚLTIMA CONDICIÓ!! (O NO)
+		// També descartem aquells punts que tinguin un mòdul massa petit
 		if(grayLevel1 != 0 && grayLevel2 != 0 && calculaModul(points1[i],points2[i]) >= 2) {
 			// Dibuixar les fletxes per veure el resultat de l'optical flow
 			Point p0( ceil( points1[i].x ), ceil( points1[i].y ) );
@@ -139,8 +148,16 @@ void OpticalFlow::calcularOpticalFlow3D(Mat& frame1, Mat& frame2, Mat frame1_d, 
 			drawArrow(rgbFrames1, p0, p1, CV_RGB(255, 0, 0));
 			// Creem el punt 3D
 			// AQUI FALTARIA CONVERTIR EL PUNT AL SISTEMA DE COORDENADES DE LA PERSONA
-			Point3i inici(int(points1[i].x), int(points1[i].y), grayLevel1);
-			Point3i desp(int(points2[i].x) - int(points1[i].x), int(points2[i].y) - int(points1[i].y), grayLevel2 - grayLevel1);
+			xA = int(points1[i].x) - origen.x;
+			xB = int(points2[i].x) - origen.x;
+			yA = grayLevel1;
+			yB = grayLevel2;
+			zA = (int(points1[i].y) - origen.y)*-1;
+			zB = (int(points2[i].y) - origen.y)*-1;
+			Point3i inici(xA, yA, zA);
+			Point3i desp(xB - xA, yB - yA, zB - zA);
+			//Point3i inici(int(points1[i].x), int(points1[i].y), grayLevel1);
+			//Point3i desp(int(points2[i].x) - int(points1[i].x), int(points2[i].y) - int(points1[i].y), grayLevel2 - grayLevel1);
 			this->OpticalFlow3DInici.push_back(inici);
 			this->OpticalFlow3DDespl.push_back(desp);
 			this->size = (this->size) + 1;

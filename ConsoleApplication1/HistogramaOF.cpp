@@ -7,6 +7,7 @@
 #include "opencv2/highgui/highgui.hpp"
 #include "HistogramaOF.h"
 #include "OpticalFlow.h"
+#include "Constants.h"
 #include <math.h>
 #include <cstdio>
 
@@ -17,9 +18,10 @@ using namespace std;
 
 /* Creadora */
 HistogramaOF::HistogramaOF() { // Mirar si cal inicialitzar
-	/*for(int i = 0; i < ESPAI_X; ++i) {
+	maxValor = 0;
+	for(int i = 0; i < ESPAI_X; ++i) {
 		for(int j = 0; j < ESPAI_Y; ++j) {
-			for(int k = 0; k < ESPAI_ALT; ++k) {
+			for(int k = 0; k < ESPAI_Z; ++k) {
 				for(int u = 0; u < MOVIMENT_PLA; ++u) {
 					for(int v = 0; v < MOVIMENT_ALT; ++v) {
 						dades[i][j][k][u][v] = 0;
@@ -27,12 +29,12 @@ HistogramaOF::HistogramaOF() { // Mirar si cal inicialitzar
 				}
 			}
 		}
-	}*/
-	for(int i = 0; i < MOVIMENT_PLA; ++i) {
+	}
+	/*for(int i = 0; i < MOVIMENT_PLA; ++i) {
 		for(int j = 0; j < MOVIMENT_ALT; ++j) {
 			dades[i][j] = 0;
 		}
-	}
+	}*/
 }
 
 /* Funció que calcula el mòdul d'un vector */
@@ -85,19 +87,51 @@ int HistogramaOF::discretitzaMovimentAlt(Point3i despl) {
 	return pos;
 }
 
+/* Funció que discretitza un vector de posició segons la seva coordenada x a l'espai */
+int HistogramaOF::discretitzaEspaiX(Point3i pos) {
+	if(pos.x >= DIVISIO_X) return 0;
+	else if(pos.x <= -DIVISIO_X) return 2;
+	else return 1;
+}
+
+/* Funció que discretitza un vector de posició segons la seva coordenada y a l'espai */
+int HistogramaOF::discretitzaEspaiY(Point3i pos) {
+	if(pos.y <= DIVISIO_Y) return 0;
+	else if(pos.y <= 2*DIVISIO_Y) return 1;
+	else return 2;
+}
+
+/* Funció que discretitza un vector de posició segons la seva coordenada z a l'espai */
+int HistogramaOF::discretitzaEspaiZ(Point3i pos) {
+	if(pos.z <= DIVISIO_Z) return 0;
+	else if(pos.z <= 2*DIVISIO_Z) return 1;
+	else return 2;
+}
+
+/* Funció que calcula la intensitat del color que haurà de tenir l'histograma segons un dels seus valors */
+int HistogramaOF::calculaFactor(int valor) {
+	float perc = (float)valor/(float)maxValor;
+	perc = perc*100;
+	int res = perc;
+	return res;
+}
+
 void HistogramaOF::representaHistograma() {
 	float start = (float)getTickCount();
 	int rows = ESPAI_X*MOVIMENT_PLA*6 + 2*ESPAI_X + 1;
-	int cols = ESPAI_ALT*ESPAI_Y*MOVIMENT_ALT*6 + 2*ESPAI_ALT*ESPAI_Y + 1;
+	int cols = ESPAI_Z*ESPAI_Y*MOVIMENT_ALT*6 + 2*ESPAI_Z*ESPAI_Y + 1;
 	int pos_x = 2; 
 	int pos_y = 0;
 	int nivell = 0;
 	Scalar s;
 	Mat representacio = Mat::zeros(cols, rows, CV_8UC3);
-	for(int i = 0; i < ESPAI_ALT; ++i) {
-		if(i == 0) s = Scalar(0,0,255);
-		else if(i == 1) s = Scalar(0,255,255);
-		else s = Scalar(0,255,0);
+	int valor, factor;
+	for(int i = 0; i < ESPAI_Z; ++i) {
+		// Rang de valors: 155 - 255
+		if(i == 0) s = Scalar(0,0,155);
+		else if(i == 1) s = Scalar(0,155,155);
+		else s = Scalar(0,155,0);
+		Scalar sum;
 		nivell = i*(ESPAI_Y*MOVIMENT_ALT*6 + ESPAI_Y*2);
 		pos_y = nivell + 2;
 		pos_x = 2;
@@ -107,7 +141,14 @@ void HistogramaOF::representaHistograma() {
 				pos_y = nivell + j*(ESPAI_Y*6 + 2) + 2;
 				for(int u = 0; u < MOVIMENT_ALT; ++u) {
 					for(int v = 0; v < MOVIMENT_PLA; ++v) {
-						rectangle(representacio, Point(pos_x, pos_y), Point(pos_x+4, pos_y+4), s, -1, 8);
+						// Aqui falta agafar les dades de l'histograma i modificar el valor de l'escalar del color
+						valor = dades[k][j][i][v][u];
+						factor = calculaFactor(valor);
+						if(i == 0) sum = Scalar(0, 0, factor);
+						else if(i == 1) sum = Scalar(0, factor, factor);
+						else sum = Scalar(0, factor, 0);
+						add(s, sum, sum);
+						rectangle(representacio, Point(pos_x, pos_y), Point(pos_x+4, pos_y+4), sum, -1, 8);
 						pos_x += 6;
 					}
 					pos_x = k*(MOVIMENT_PLA*6 + 2) + 2;
@@ -131,24 +172,29 @@ void HistogramaOF::calcularHistogramaOF(Mat& frame1, Mat& frame2, Mat frame1_d, 
 	vector<Point3i> ini = OF.getOpticalFlow3DInici();
 	vector<Point3i> despl = OF.getOpticalFlow3DDespl();
 	// Recorrem tots els punts calculats per l'Optical Flow
-	int mov_pla, mov_alt = 0;
+	int mov_pla, mov_alt, espai_x, espai_y, espai_z = 0;
 	for(int i = 0; i < ini.size(); ++i) {
-		// Discretitzem per posicio
-		// Agafant les dades de ini
+		// Discretitzem per posicio (agafant les dades de ini)
+		Point3i init = ini.at(i);
+		espai_x = discretitzaEspaiX(init);
+		espai_y = discretitzaEspaiY(init);
+		espai_z = discretitzaEspaiZ(init);
 		// Discretitzem per direcció del moviment (amb les dades del desplaçament de cada punt)
 		Point3i des = despl.at(i);
 		mov_pla = discretitzaMovimentPla(des);
 		mov_alt = discretitzaMovimentAlt(des);
-		dades[mov_pla][mov_alt]++;
+		dades[espai_x][espai_y][espai_z][mov_pla][mov_alt]++;
+		if(dades[espai_x][espai_y][espai_z][mov_pla][mov_alt] > maxValor) maxValor = dades[espai_x][espai_y][espai_z][mov_pla][mov_alt];
 	}
 	
 	cout << "Histograma calculat" << endl;
-	for(int i = 0; i < MOVIMENT_PLA; ++i) {
+	/*for(int i = 0; i < MOVIMENT_PLA; ++i) {
 		for(int j = 0; j < MOVIMENT_ALT; ++j) {
 			cout << dades[i][j] << "    ";
 		}
 		cout << endl;
-	}
+	}*/
+	cout << "Valor màxim: " << maxValor << endl;
 	representaHistograma();
 	printf("Temps total Histograma Optical Flow: %lf sec\n", (getTickCount() - start) / getTickFrequency());
 }
