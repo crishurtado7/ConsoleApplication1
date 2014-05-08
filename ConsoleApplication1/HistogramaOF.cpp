@@ -96,16 +96,16 @@ int HistogramaOF::discretitzaEspaiX(Point3i pos) {
 
 /* Funció que discretitza un vector de posició segons la seva coordenada y a l'espai */
 int HistogramaOF::discretitzaEspaiY(Point3i pos) {
-	if(pos.y <= DIVISIO_Y) return 0;
+	if(pos.y <= DIVISIO_Y) return 2;
 	else if(pos.y <= 2*DIVISIO_Y) return 1;
-	else return 2;
+	else return 0;
 }
 
 /* Funció que discretitza un vector de posició segons la seva coordenada z a l'espai */
 int HistogramaOF::discretitzaEspaiZ(Point3i pos) {
-	if(pos.z <= DIVISIO_Z) return 0;
+	if(pos.z <= DIVISIO_Z) return 2;
 	else if(pos.z <= 2*DIVISIO_Z) return 1;
-	else return 2;
+	else return 0;
 }
 
 /* Funció que calcula la intensitat del color que haurà de tenir l'histograma segons un dels seus valors */
@@ -116,7 +116,7 @@ int HistogramaOF::calculaFactor(int valor) {
 	return res;
 }
 
-void HistogramaOF::representaHistograma() {
+Mat HistogramaOF::representaHistograma() {
 	float start = (float)getTickCount();
 	int rows = ESPAI_X*MOVIMENT_PLA*6 + 2*ESPAI_X + 1;
 	int cols = ESPAI_Z*ESPAI_Y*MOVIMENT_ALT*6 + 2*ESPAI_Z*ESPAI_Y + 1;
@@ -128,9 +128,9 @@ void HistogramaOF::representaHistograma() {
 	int valor, factor;
 	for(int i = 0; i < ESPAI_Z; ++i) {
 		// Rang de valors: 155 - 255
-		if(i == 0) s = Scalar(0,0,155);
-		else if(i == 1) s = Scalar(0,155,155);
-		else s = Scalar(0,155,0);
+		if(i == 0) s = Scalar(0,0,155); // Vermell
+		else if(i == 1) s = Scalar(0,155,155); // Groc
+		else s = Scalar(155,0,155); // Vermell
 		Scalar sum;
 		nivell = i*(ESPAI_Y*MOVIMENT_ALT*6 + ESPAI_Y*2);
 		pos_y = nivell + 2;
@@ -146,7 +146,7 @@ void HistogramaOF::representaHistograma() {
 						factor = calculaFactor(valor);
 						if(i == 0) sum = Scalar(0, 0, factor);
 						else if(i == 1) sum = Scalar(0, factor, factor);
-						else sum = Scalar(0, factor, 0);
+						else sum = Scalar(factor, 0, factor);
 						add(s, sum, sum);
 						rectangle(representacio, Point(pos_x, pos_y), Point(pos_x+4, pos_y+4), sum, -1, 8);
 						pos_x += 6;
@@ -157,18 +157,21 @@ void HistogramaOF::representaHistograma() {
 			} 
 		}
 	}
-	imshow("Representació Histograma", representacio);
+	//imshow("Representació Histograma", representacio);
+	imwrite("representacio.jpg", representacio);
 	printf("Temps representació histograma: %lf sec\n", (getTickCount() - start) / getTickFrequency());
+
+	return representacio;
 }
 
 /* Funció que calcula l'histograma d'Optical Flow entre dos frames consecutius */
-void HistogramaOF::calcularHistogramaOF(Mat& frame1, Mat& frame2, Mat frame1_d, Mat frame2_d) {
+Mat HistogramaOF::calcularHistogramaOF(Mat& frame1, Mat& frame2, Mat frame1_d, Mat frame2_d) {
 	cout << "Calculant Histograma Optical Flow..." << endl;
 	// Comencem a comptar el temps
 	float start = (float)getTickCount();
 	// Calculem l'Optical Flow entre els dos frames
-	OpticalFlow OF;
-	OF.calcularOpticalFlow3D(frame1, frame2, frame1_d, frame2_d);
+	OpticalFlow OF = OpticalFlow();
+	Mat OptFlow = OF.calcularOpticalFlow3D(frame1, frame2, frame1_d, frame2_d);
 	vector<Point3i> ini = OF.getOpticalFlow3DInici();
 	vector<Point3i> despl = OF.getOpticalFlow3DDespl();
 	// Recorrem tots els punts calculats per l'Optical Flow
@@ -195,6 +198,17 @@ void HistogramaOF::calcularHistogramaOF(Mat& frame1, Mat& frame2, Mat frame1_d, 
 		cout << endl;
 	}*/
 	cout << "Valor màxim: " << maxValor << endl;
-	representaHistograma();
+	Mat representacio = representaHistograma();
+
+	// Combinem la imatge amb la representació de l'Optical Flow 2D i la representació de l'histograma
+	Mat img_matches(OptFlow.rows, OptFlow.cols + representacio.cols, OptFlow.type());
+	Mat left(img_matches, Rect(0, 0, OptFlow.cols, OptFlow.rows)); // Copy constructor
+	OptFlow.copyTo(left);
+	Mat right(img_matches, Rect(OptFlow.cols, 0, representacio.cols, representacio.rows)); // Copy constructor
+	representacio.copyTo(right);
+	//imshow("Imatges", img_matches);
+	cout << "Mida imatge: " << img_matches.cols << "  " << img_matches.rows << endl;
 	printf("Temps total Histograma Optical Flow: %lf sec\n", (getTickCount() - start) / getTickFrequency());
+
+	return img_matches;
 }

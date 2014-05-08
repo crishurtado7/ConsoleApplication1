@@ -10,4 +10,7 @@ const int SECTORS_Z = 3;
 
 const int DIVISIO_X = 53;
 const int DIVISIO_Y = 12;
-const int DIVISIO_Z = 80;
+const int DIVISIO_Z = 30;
+
+const int NUMERO_ACTIVITATS = 3;
+const int REPETICIONS_ACTIVITAT = 5;

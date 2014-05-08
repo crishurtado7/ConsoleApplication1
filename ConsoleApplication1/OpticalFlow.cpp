@@ -65,12 +65,12 @@ Mat OpticalFlow::calcularMascara(Mat frame_d) {
 	cvtColor(result, aux, CV_GRAY2RGB);
 	Point p(180, 200);
 	drawArrow(aux, p, p, Scalar(0, 0, 255));*/
-	imshow("Màscara", result);
+	//imshow("Màscara", result);
 	return result;
 }
 
 /* Funció que calcula l'optical flow 3D entre dos frames consecutius */
-void OpticalFlow::calcularOpticalFlow3D(Mat& frame1, Mat& frame2, Mat frame1_d, Mat frame2_d) {
+Mat OpticalFlow::calcularOpticalFlow3D(Mat& frame1, Mat& frame2, Mat frame1_d, Mat frame2_d) {
 	// Comprovem que les imatges tinguin la mateixa mida
 	if(frame1.rows != frame2.rows && frame1.cols != frame2.cols) {
 		printf("Les imatges han de ser de la mateixa mida\n");
@@ -136,39 +136,42 @@ void OpticalFlow::calcularOpticalFlow3D(Mat& frame1, Mat& frame2, Mat frame1_d, 
 	int grayLevel1, grayLevel2 = 0;
 	int xA, yA, zA, xB, yB, zB;
 	for(int i = 0; i < points2.size(); ++i) {
-		grayLevel1 = frame1_d.at<uchar>(int(points1[i].y), int(points1[i].x));
-		grayLevel2 = frame2_d.at<uchar>(int(points2[i].y), int(points2[i].x));
-		// AQUI FALTA CONVERTIR EL NIVELL DE GRIS A PIXEL OR SOMETHING
-		// Descartem aquells punts que cauen fora de la imatge registrada per la càmera de profunditats
-		// També descartem aquells punts que tinguin un mòdul massa petit
-		if(grayLevel1 != 0 && grayLevel2 != 0 && calculaModul(points1[i],points2[i]) >= 2) {
-			// Dibuixar les fletxes per veure el resultat de l'optical flow
-			Point p0( ceil( points1[i].x ), ceil( points1[i].y ) );
-			Point p1( ceil( points2[i].x ), ceil( points2[i].y ) );
-			drawArrow(rgbFrames1, p0, p1, CV_RGB(255, 0, 0));
-			// Creem el punt 3D
-			// AQUI FALTARIA CONVERTIR EL PUNT AL SISTEMA DE COORDENADES DE LA PERSONA
-			xA = int(points1[i].x) - origen.x;
-			xB = int(points2[i].x) - origen.x;
-			yA = grayLevel1;
-			yB = grayLevel2;
-			zA = (int(points1[i].y) - origen.y)*-1;
-			zB = (int(points2[i].y) - origen.y)*-1;
-			Point3i inici(xA, yA, zA);
-			Point3i desp(xB - xA, yB - yA, zB - zA);
-			//Point3i inici(int(points1[i].x), int(points1[i].y), grayLevel1);
-			//Point3i desp(int(points2[i].x) - int(points1[i].x), int(points2[i].y) - int(points1[i].y), grayLevel2 - grayLevel1);
-			this->OpticalFlow3DInici.push_back(inici);
-			this->OpticalFlow3DDespl.push_back(desp);
-			this->size = (this->size) + 1;
-			//cout << "Punt " << i << ": " << int(points2[i].x) - int(points1[i].x) << "    " << int(points2[i].y) - int(points1[i].y) << endl;
+		if(int(points2[i].x) < frame1.cols && int(points2[i].x) >= 0 && int(points2[i].y) >= 0 && int(points2[i].y) < frame1.rows) {
+			grayLevel1 = frame1_d.at<uchar>(int(points1[i].y), int(points1[i].x));
+			grayLevel2 = frame2_d.at<uchar>(int(points2[i].y), int(points2[i].x));
+			// AQUI FALTA CONVERTIR EL NIVELL DE GRIS A PIXEL OR SOMETHING
+			// Descartem aquells punts que cauen fora de la imatge registrada per la càmera de profunditats
+			// També descartem aquells punts que tinguin un mòdul massa petit
+			if(grayLevel1 != 0 && grayLevel2 != 0 && calculaModul(points1[i],points2[i]) >= 2) {
+				// Dibuixar les fletxes per veure el resultat de l'optical flow
+				Point p0( ceil( points1[i].x ), ceil( points1[i].y ) );
+				Point p1( ceil( points2[i].x ), ceil( points2[i].y ) );
+				drawArrow(rgbFrames1, p0, p1, CV_RGB(255, 0, 0));
+				// Creem el punt 3D
+				// AQUI FALTARIA CONVERTIR EL PUNT AL SISTEMA DE COORDENADES DE LA PERSONA
+				xA = int(points1[i].x) - origen.x;
+				xB = int(points2[i].x) - origen.x;
+				yA = grayLevel1;
+				yB = grayLevel2;
+				zA = (int(points1[i].y) - origen.y)*-1;
+				zB = (int(points2[i].y) - origen.y)*-1;
+				Point3i inici(xA, yA, zA);
+				Point3i desp(xB - xA, yB - yA, zB - zA);
+				//Point3i inici(int(points1[i].x), int(points1[i].y), grayLevel1);
+				//Point3i desp(int(points2[i].x) - int(points1[i].x), int(points2[i].y) - int(points1[i].y), grayLevel2 - grayLevel1);
+				this->OpticalFlow3DInici.push_back(inici);
+				this->OpticalFlow3DDespl.push_back(desp);
+				this->size = (this->size) + 1;
+				//cout << "Punt " << i << ": " << xA << "    " << yA << "     " << zA << endl;
+			}
 		}
 	}
-	imshow("Resultat Optical Flow 2D", rgbFrames1);
+	//imshow("Resultat Optical Flow 2D", rgbFrames1);
 	cout << "Número de vectors a l'optical flow 3D: " << this->size << endl;
 	printf("Temps càlcul Optical Flow 3D: %lf sec\n", (getTickCount() - startOF3D) / getTickFrequency());
 
 	printf("Temps total Optical Flow: %lf sec\n", (getTickCount() - start) / getTickFrequency());
+	return rgbFrames1;
 }
 
 /* Funció que retorna la mida dels vectors d'Optical Flow */

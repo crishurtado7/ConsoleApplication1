@@ -27,8 +27,8 @@ class HistogramaOF {
 		int discretitzaEspaiY(Point3i pos);
 		int discretitzaEspaiZ(Point3i pos);
 		int calculaFactor(int valor);
-		void representaHistograma();
-		void calcularHistogramaOF(Mat& frame1, Mat& frame2, Mat frame1_d, Mat frame2_d);
+		Mat representaHistograma();
+		Mat calcularHistogramaOF(Mat& frame1, Mat& frame2, Mat frame1_d, Mat frame2_d);
 		// Algun mètode per calcular histogrames acumulats??
 
 	private:
