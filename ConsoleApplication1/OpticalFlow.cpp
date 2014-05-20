@@ -142,15 +142,15 @@ Mat OpticalFlow::calcularOpticalFlow3D(Mat& frame1, Mat& frame2, Mat frame1_d, M
 			// AQUI FALTA CONVERTIR EL NIVELL DE GRIS A PIXEL OR SOMETHING
 			// Descartem aquells punts que cauen fora de la imatge registrada per la càmera de profunditats
 			// També descartem aquells punts que tinguin un mòdul massa petit
-			if(grayLevel1 != 0 && grayLevel2 != 0 && calculaModul(points1[i],points2[i]) >= 2) {
+			if(grayLevel1 != 0 && grayLevel2 != 0 && calculaModul(points1[i],points2[i]) > 3) {
 				// Dibuixar les fletxes per veure el resultat de l'optical flow
 				Point p0( ceil( points1[i].x ), ceil( points1[i].y ) );
 				Point p1( ceil( points2[i].x ), ceil( points2[i].y ) );
 				drawArrow(rgbFrames1, p0, p1, CV_RGB(255, 0, 0));
 				// Creem el punt 3D
 				// AQUI FALTARIA CONVERTIR EL PUNT AL SISTEMA DE COORDENADES DE LA PERSONA
-				xA = int(points1[i].x) - origen.x;
-				xB = int(points2[i].x) - origen.x;
+				xA = (int(points1[i].x) - origen.x)*-1;
+				xB = (int(points2[i].x) - origen.x)*-1;
 				yA = grayLevel1;
 				yB = grayLevel2;
 				zA = (int(points1[i].y) - origen.y)*-1;
@@ -171,6 +171,25 @@ Mat OpticalFlow::calcularOpticalFlow3D(Mat& frame1, Mat& frame2, Mat frame1_d, M
 	printf("Temps càlcul Optical Flow 3D: %lf sec\n", (getTickCount() - startOF3D) / getTickFrequency());
 
 	printf("Temps total Optical Flow: %lf sec\n", (getTickCount() - start) / getTickFrequency());
+
+	// Dibuixem la línia principal, de p a q
+	Point2i p(0, 200);
+	Point2i q(320, 200);
+	drawArrow(rgbFrames1, p, q, Scalar(255, 0, 0));
+	p = Point2i(0, 160);
+	q = Point2i(320, 160);
+	drawArrow(rgbFrames1, p, q, Scalar(255, 0, 0));
+	p = Point2i(0, 120);
+	q = Point2i(320, 120);
+	drawArrow(rgbFrames1, p, q, Scalar(255, 0, 0));
+
+	p = Point2i(120, 0);
+	q = Point2i(120, 240);
+	drawArrow(rgbFrames1, p, q, Scalar(255, 0, 0));
+	p = Point2i(240, 0);
+	q = Point2i(240, 240);
+	drawArrow(rgbFrames1, p, q, Scalar(255, 0, 0));
+
 	return rgbFrames1;
 }
 
