@@ -14,6 +14,6 @@ public:
 	Classificador();
 	void conjuntDades(Mat dades);
 	void entrenar(Mat trainingData, Mat labels);
-	void classificar(Mat sampleData);
+	Mat classificar(Mat sampleData);
 };
 

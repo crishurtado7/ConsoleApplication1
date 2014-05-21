@@ -172,24 +172,6 @@ Mat OpticalFlow::calcularOpticalFlow3D(Mat& frame1, Mat& frame2, Mat frame1_d, M
 
 	printf("Temps total Optical Flow: %lf sec\n", (getTickCount() - start) / getTickFrequency());
 
-	// Dibuixem la línia principal, de p a q
-	Point2i p(0, 200);
-	Point2i q(320, 200);
-	drawArrow(rgbFrames1, p, q, Scalar(255, 0, 0));
-	p = Point2i(0, 160);
-	q = Point2i(320, 160);
-	drawArrow(rgbFrames1, p, q, Scalar(255, 0, 0));
-	p = Point2i(0, 120);
-	q = Point2i(320, 120);
-	drawArrow(rgbFrames1, p, q, Scalar(255, 0, 0));
-
-	p = Point2i(120, 0);
-	q = Point2i(120, 240);
-	drawArrow(rgbFrames1, p, q, Scalar(255, 0, 0));
-	p = Point2i(240, 0);
-	q = Point2i(240, 240);
-	drawArrow(rgbFrames1, p, q, Scalar(255, 0, 0));
-
 	return rgbFrames1;
 }
 

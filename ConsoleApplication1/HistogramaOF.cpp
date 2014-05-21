@@ -329,6 +329,42 @@ Mat HistogramaOF::calcularHistogramaAcumulatOF(String path, int num_imatges, Str
 	return resultat;
 }
 
+void HistogramaOF::escriureFitxer(String nom_fitxer) {
+	ofstream out(nom_fitxer, ios::binary);
+	for(int i = 0; i < ESPAI_X; ++i) {
+		for(int j = 0; j < ESPAI_Y; ++j) {
+			for(int k = 0; k < ESPAI_Z; ++k) {
+				for(int u = 0; u < MOVIMENT_PLA; ++u) {
+					for(int v = 0; v < MOVIMENT_ALT; ++v) {
+						if(out.is_open()) out.write((char *)&dades[i][j][k][u][v], sizeof(float));
+					}
+				}
+			}
+		}
+	}
+	out.close();
+}
+
+void HistogramaOF::llegirFitxer(String nom_fitxer) {
+	maxValor = 0;
+	sumaValors = 0;
+	ifstream in(nom_fitxer, ios::binary);
+	for(int i = 0; i < ESPAI_X; ++i) {
+		for(int j = 0; j < ESPAI_Y; ++j) {
+			for(int k = 0; k < ESPAI_Z; ++k) {
+				for(int u = 0; u < MOVIMENT_PLA; ++u) {
+					for(int v = 0; v < MOVIMENT_ALT; ++v) {
+						if(in.is_open()) in.read((char *)&dades[i][j][k][u][v], sizeof(float));
+						if(dades[i][j][k][u][v] > maxValor) maxValor = dades[i][j][k][u][v];
+						sumaValors += dades[i][j][k][u][v];
+					}
+				}
+			}
+		}
+	}
+	in.close();
+}
+
 /* Funció que normalitza els valors d'un histograma respecte a la suma total */
 void HistogramaOF::normalitzaHOF() {
 	maxValor = 0;
@@ -430,15 +466,15 @@ float HistogramaOF::calculaGrauSimilitud(HistogramaOF hof1, HistogramaOF hof2) {
 }
 
 Mat HistogramaOF::obteVector() {
-	int size = DIVISIO_X*DIVISIO_Y*DIVISIO_Z*MOVIMENT_ALT*MOVIMENT_PLA;
+	int size = SECTORS_X*SECTORS_Y*SECTORS_Z*MOVIMENT_ALT*MOVIMENT_PLA;
 	int pos = 0;
-	Mat dadesMat(size, 1, CV_32FC1);
+	Mat dadesMat = Mat::zeros(1, size, CV_32FC1);
 	for(int i = 0; i < ESPAI_X; ++i) {
 		for(int j = 0; j < ESPAI_Y; ++j) {
 			for(int k = 0; k < ESPAI_Z; ++k) {
 				for(int u = 0; u < MOVIMENT_PLA; ++u) {
 					for(int v = 0; v < MOVIMENT_ALT; ++v) {
-						dadesMat.at<float>(pos, 1) = dades[i][j][k][u][v];
+						dadesMat.at<float>(0, pos) = dades[i][j][k][u][v];
 						++pos;
 					}
 				}

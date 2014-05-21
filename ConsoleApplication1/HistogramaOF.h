@@ -32,6 +32,8 @@ class HistogramaOF {
 		Mat representaHistograma();
 		Mat calcularHistogramaOF(Mat& frame1, Mat& frame2, Mat frame1_d, Mat frame2_d);
 		Mat calcularHistogramaAcumulatOF(String path, int num_imatges, String nom_activitat, int num_repeticio);
+		void escriureFitxer(String nom_fitxer);
+		void llegirFitxer(String nom_fitxer);
 		void normalitzaHOF();
 		float getValor(int i, int j, int k, int u, int v);
 		void sumaHOF(HistogramaOF hof);
