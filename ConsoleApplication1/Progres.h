@@ -1,5 +1,6 @@
 #pragma once
 #include "Resultats.h"
+#include "Manager.h"
 
 namespace ConsoleApplication1 {
 
@@ -15,14 +16,13 @@ namespace ConsoleApplication1 {
 	/// </summary>
 	public ref class Progres : public System::Windows::Forms::Form
 	{
+	private: System::Windows::Forms::Timer^  timer1;
 	public:
+		Manager f;
 		Progres(void)
 		{
 			InitializeComponent();
-			this->timer1->Start();
-			//
-			//TODO: agregar código de constructor aquí
-			//
+			timer1->Start();
 		}
 
 	protected:
@@ -38,8 +38,8 @@ namespace ConsoleApplication1 {
 		}
 	private: System::Windows::Forms::Label^  label1;
 	protected: 
-	private: System::Windows::Forms::ProgressBar^  progressBar1;
-	private: System::Windows::Forms::Timer^  timer1;
+
+
 	private: System::Windows::Forms::Label^  label2;
 	private: System::ComponentModel::IContainer^  components;
 
@@ -58,40 +58,31 @@ namespace ConsoleApplication1 {
 		{
 			this->components = (gcnew System::ComponentModel::Container());
 			this->label1 = (gcnew System::Windows::Forms::Label());
-			this->progressBar1 = (gcnew System::Windows::Forms::ProgressBar());
-			this->timer1 = (gcnew System::Windows::Forms::Timer(this->components));
 			this->label2 = (gcnew System::Windows::Forms::Label());
+			this->timer1 = (gcnew System::Windows::Forms::Timer(this->components));
 			this->SuspendLayout();
 			// 
 			// label1
 			// 
 			this->label1->AutoSize = true;
-			this->label1->Location = System::Drawing::Point(84, 9);
+			this->label1->Location = System::Drawing::Point(87, 21);
 			this->label1->Name = L"label1";
 			this->label1->Size = System::Drawing::Size(183, 13);
 			this->label1->TabIndex = 0;
 			this->label1->Text = L"Espera mentre es realitzen els càlculs";
 			// 
-			// progressBar1
-			// 
-			this->progressBar1->Location = System::Drawing::Point(87, 39);
-			this->progressBar1->Name = L"progressBar1";
-			this->progressBar1->Size = System::Drawing::Size(180, 23);
-			this->progressBar1->TabIndex = 1;
-			// 
-			// timer1
-			// 
-			this->timer1->Interval = 20;
-			this->timer1->Tick += gcnew System::EventHandler(this, &Progres::timer1_Tick);
-			// 
 			// label2
 			// 
 			this->label2->AutoSize = true;
-			this->label2->Location = System::Drawing::Point(87, 69);
+			this->label2->Location = System::Drawing::Point(77, 44);
 			this->label2->Name = L"label2";
-			this->label2->Size = System::Drawing::Size(132, 13);
+			this->label2->Size = System::Drawing::Size(207, 13);
 			this->label2->TabIndex = 2;
-			this->label2->Text = L"Activitat 1/3 Execució 1/5";
+			this->label2->Text = L"Aquest procés pot trigar uns quants minuts";
+			// 
+			// timer1
+			// 
+			this->timer1->Tick += gcnew System::EventHandler(this, &Progres::timer1_Tick);
 			// 
 			// Progres
 			// 
@@ -99,24 +90,21 @@ namespace ConsoleApplication1 {
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
 			this->ClientSize = System::Drawing::Size(369, 99);
 			this->Controls->Add(this->label2);
-			this->Controls->Add(this->progressBar1);
 			this->Controls->Add(this->label1);
 			this->Name = L"Progres";
-			this->Text = L"Progres";
+			this->Text = L"Processant...";
 			this->ResumeLayout(false);
 			this->PerformLayout();
 
 		}
 #pragma endregion
 	private: System::Void timer1_Tick(System::Object^  sender, System::EventArgs^  e) {
-				 this->progressBar1->Increment(1);
-				 if(this->progressBar1->Value == this->progressBar1->Maximum) {
-					 this->timer1->Stop();
-					 Resultats^ r = gcnew Resultats();
-					 this->Hide();
-					 r->ShowDialog();
-					 this->Close();
-				 }
+				 if(f.com == false) f.calculaHistogrames();
+				 this->timer1->Stop();
+				 Resultats^ r = gcnew Resultats();
+				 this->Hide();
+				 r->ShowDialog();
+				 this->Close();
 			 }
-	};
+};
 }

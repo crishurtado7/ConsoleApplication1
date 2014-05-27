@@ -439,7 +439,7 @@ void HistogramaOF::mitjanaAritHOF(vector<HistogramaOF> ArrayHOF, String nom_acti
 		}
 	}
 	Mat repr = representaHistograma();
-	imshow("Histograma mitjana", repr);
+	//imshow("Histograma mitjana", repr);
 	String nom = "Histograma_mitjana_"+nom_activitat+".png";
 	imwrite(nom, repr);
 }

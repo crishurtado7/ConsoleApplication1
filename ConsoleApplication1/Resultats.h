@@ -71,6 +71,9 @@ namespace ConsoleApplication1 {
 			this->listBox1->Size = System::Drawing::Size(202, 212);
 			this->listBox1->TabIndex = 1;
 			this->listBox1->SelectedIndexChanged += gcnew System::EventHandler(this, &Resultats::listBox1_SelectedIndexChanged);
+			listBox1->Items->Clear();
+			this->listBox1->Items->AddRange(gcnew cli::array< System::Object^  >(18) {L"Histograma_cut_1", L"Histograma_cut_2", L"Histograma_cut_3", L"Histograma_cut_4", L"Histograma_cut_5", L"Histograma_eat_1", L"Histograma_eat_2", L"Histograma_eat_3", L"Histograma_eat_4", L"Histograma_eat_5", L"Histograma_stir_1", L"Histograma_stir_2", L"Histograma_stir_3", L"Histograma_stir_4", L"Histograma_stir_5", L"Histograma_mitjana_cut", L"Histograma_mitjana_eat", L"Histograma_mitjana_stir"});
+			
 			// 
 			// pictureBox1
 			// 
@@ -109,7 +112,8 @@ namespace ConsoleApplication1 {
 	private: System::Void listBox1_SelectedIndexChanged(System::Object^  sender, System::EventArgs^  e) {
 				//Mostrem la imatge seleccionada
 				// Obtenim l'index de la imatge, agafem el nom de la llista i la mostrem
-				 this->pictureBox1->ImageLocation = "./Histograma_mitjana_cut.png";
+				 System::String^ nom = "./" + this->listBox1->SelectedItem->ToString() + ".png";
+				 this->pictureBox1->ImageLocation = nom;
 				 this->pictureBox1->Load();
 			 }
 	private: System::Void button1_Click(System::Object^  sender, System::EventArgs^  e) {

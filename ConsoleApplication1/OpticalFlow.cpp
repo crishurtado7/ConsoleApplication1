@@ -100,7 +100,6 @@ Mat OpticalFlow::calcularOpticalFlow3D(Mat& frame1, Mat& frame2, Mat frame1_d, M
 	int i, k;
 	TermCriteria termcrit(CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, 20, 0.03);
 	Size subPixWinSize(10, 10), winSize(45, 45);
-	namedWindow("Resultat Optical Flow 2D", CV_WINDOW_AUTOSIZE);
 	double angle;
 
 	// Passem els frames RGB a escala de grisos
@@ -166,7 +165,6 @@ Mat OpticalFlow::calcularOpticalFlow3D(Mat& frame1, Mat& frame2, Mat frame1_d, M
 			}
 		}
 	}
-	//imshow("Resultat Optical Flow 2D", rgbFrames1);
 	cout << "Número de vectors a l'optical flow 3D: " << this->size << endl;
 	printf("Temps càlcul Optical Flow 3D: %lf sec\n", (getTickCount() - startOF3D) / getTickFrequency());
 

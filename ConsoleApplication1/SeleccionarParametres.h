@@ -37,7 +37,7 @@ namespace ConsoleApplication1 {
 		}
 	private: System::Windows::Forms::Label^  label1;
 	private: System::Windows::Forms::CheckBox^  checkBox1;
-	private: System::Windows::Forms::CheckBox^  checkBox2;
+
 
 
 
@@ -48,10 +48,21 @@ namespace ConsoleApplication1 {
 	private: System::Windows::Forms::NumericUpDown^  numericUpDown2;
 	private: System::Windows::Forms::NumericUpDown^  numericUpDown3;
 	private: System::Windows::Forms::Button^  button1;
-	private: System::Windows::Forms::CheckedListBox^  checkedListBox1;
-	private: System::Windows::Forms::Label^  label5;
-	private: System::Windows::Forms::Label^  label6;
+
+
+
+
+	private: System::Windows::Forms::NumericUpDown^  numericUpDown4;
+	private: System::Windows::Forms::Label^  label7;
+	private: System::Windows::Forms::NumericUpDown^  numericUpDown5;
+	private: System::Windows::Forms::Label^  label8;
+	private: System::Windows::Forms::Button^  button2;
 	private: System::Windows::Forms::TextBox^  textBox1;
+	private: System::Windows::Forms::Label^  label5;
+	private: System::Windows::Forms::FolderBrowserDialog^  folderBrowserDialog1;
+
+
+
 	protected: 
 
 	private:
@@ -69,7 +80,6 @@ namespace ConsoleApplication1 {
 		{
 			this->label1 = (gcnew System::Windows::Forms::Label());
 			this->checkBox1 = (gcnew System::Windows::Forms::CheckBox());
-			this->checkBox2 = (gcnew System::Windows::Forms::CheckBox());
 			this->label2 = (gcnew System::Windows::Forms::Label());
 			this->label3 = (gcnew System::Windows::Forms::Label());
 			this->label4 = (gcnew System::Windows::Forms::Label());
@@ -77,13 +87,19 @@ namespace ConsoleApplication1 {
 			this->numericUpDown2 = (gcnew System::Windows::Forms::NumericUpDown());
 			this->numericUpDown3 = (gcnew System::Windows::Forms::NumericUpDown());
 			this->button1 = (gcnew System::Windows::Forms::Button());
-			this->checkedListBox1 = (gcnew System::Windows::Forms::CheckedListBox());
-			this->label5 = (gcnew System::Windows::Forms::Label());
-			this->label6 = (gcnew System::Windows::Forms::Label());
+			this->numericUpDown4 = (gcnew System::Windows::Forms::NumericUpDown());
+			this->label7 = (gcnew System::Windows::Forms::Label());
+			this->numericUpDown5 = (gcnew System::Windows::Forms::NumericUpDown());
+			this->label8 = (gcnew System::Windows::Forms::Label());
+			this->button2 = (gcnew System::Windows::Forms::Button());
 			this->textBox1 = (gcnew System::Windows::Forms::TextBox());
+			this->label5 = (gcnew System::Windows::Forms::Label());
+			this->folderBrowserDialog1 = (gcnew System::Windows::Forms::FolderBrowserDialog());
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->numericUpDown1))->BeginInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->numericUpDown2))->BeginInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->numericUpDown3))->BeginInit();
+			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->numericUpDown4))->BeginInit();
+			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->numericUpDown5))->BeginInit();
 			this->SuspendLayout();
 			// 
 			// label1
@@ -104,16 +120,6 @@ namespace ConsoleApplication1 {
 			this->checkBox1->TabIndex = 1;
 			this->checkBox1->Text = L"Gravar vídeo de les execucions";
 			this->checkBox1->UseVisualStyleBackColor = true;
-			// 
-			// checkBox2
-			// 
-			this->checkBox2->AutoSize = true;
-			this->checkBox2->Location = System::Drawing::Point(19, 156);
-			this->checkBox2->Name = L"checkBox2";
-			this->checkBox2->Size = System::Drawing::Size(184, 17);
-			this->checkBox2->TabIndex = 2;
-			this->checkBox2->Text = L"Guardar imatges dels histogrames";
-			this->checkBox2->UseVisualStyleBackColor = true;
 			// 
 			// label2
 			// 
@@ -173,48 +179,79 @@ namespace ConsoleApplication1 {
 			this->button1->UseVisualStyleBackColor = true;
 			this->button1->Click += gcnew System::EventHandler(this, &SeleccionarParametres::boto_Continuar);
 			// 
-			// checkedListBox1
+			// numericUpDown4
 			// 
-			this->checkedListBox1->FormattingEnabled = true;
-			this->checkedListBox1->Location = System::Drawing::Point(218, 63);
-			this->checkedListBox1->Name = L"checkedListBox1";
-			this->checkedListBox1->Size = System::Drawing::Size(120, 109);
-			this->checkedListBox1->TabIndex = 13;
+			this->numericUpDown4->Location = System::Drawing::Point(193, 45);
+			this->numericUpDown4->Name = L"numericUpDown4";
+			this->numericUpDown4->Size = System::Drawing::Size(51, 20);
+			this->numericUpDown4->TabIndex = 17;
+			// 
+			// label7
+			// 
+			this->label7->AutoSize = true;
+			this->label7->Location = System::Drawing::Point(151, 47);
+			this->label7->Name = L"label7";
+			this->label7->Size = System::Drawing::Size(36, 13);
+			this->label7->TabIndex = 18;
+			this->label7->Text = L"Mòdul";
+			// 
+			// numericUpDown5
+			// 
+			this->numericUpDown5->Location = System::Drawing::Point(193, 71);
+			this->numericUpDown5->Name = L"numericUpDown5";
+			this->numericUpDown5->Size = System::Drawing::Size(51, 20);
+			this->numericUpDown5->TabIndex = 19;
+			// 
+			// label8
+			// 
+			this->label8->AutoSize = true;
+			this->label8->Location = System::Drawing::Point(137, 73);
+			this->label8->Name = L"label8";
+			this->label8->Size = System::Drawing::Size(51, 13);
+			this->label8->TabIndex = 20;
+			this->label8->Text = L"Punts OF";
+			// 
+			// button2
+			// 
+			this->button2->Location = System::Drawing::Point(19, 174);
+			this->button2->Name = L"button2";
+			this->button2->Size = System::Drawing::Size(61, 23);
+			this->button2->TabIndex = 21;
+			this->button2->Text = L"Explorar";
+			this->button2->UseVisualStyleBackColor = true;
+			this->button2->Click += gcnew System::EventHandler(this, &SeleccionarParametres::button2_Click);
+			// 
+			// textBox1
+			// 
+			this->textBox1->Enabled = false;
+			this->textBox1->Location = System::Drawing::Point(86, 176);
+			this->textBox1->Name = L"textBox1";
+			this->textBox1->ReadOnly = true;
+			this->textBox1->Size = System::Drawing::Size(303, 20);
+			this->textBox1->TabIndex = 22;
+			this->textBox1->Text = L"C:\\Users\\Cris\\Desktop";
 			// 
 			// label5
 			// 
 			this->label5->AutoSize = true;
-			this->label5->Location = System::Drawing::Point(215, 47);
+			this->label5->Location = System::Drawing::Point(19, 155);
 			this->label5->Name = L"label5";
-			this->label5->Size = System::Drawing::Size(157, 13);
-			this->label5->TabIndex = 14;
-			this->label5->Text = L"Seleccionar activitats (mínim 2):";
-			// 
-			// label6
-			// 
-			this->label6->AutoSize = true;
-			this->label6->Location = System::Drawing::Point(16, 192);
-			this->label6->Name = L"label6";
-			this->label6->Size = System::Drawing::Size(228, 13);
-			this->label6->TabIndex = 15;
-			this->label6->Text = L"Introdueix un nom per a la carpeta de resultats:";
-			// 
-			// textBox1
-			// 
-			this->textBox1->Location = System::Drawing::Point(250, 189);
-			this->textBox1->Name = L"textBox1";
-			this->textBox1->Size = System::Drawing::Size(100, 20);
-			this->textBox1->TabIndex = 16;
+			this->label5->Size = System::Drawing::Size(235, 13);
+			this->label5->TabIndex = 23;
+			this->label5->Text = L"Selecciona una carpeta on guardar els resultats:";
 			// 
 			// SeleccionarParametres
 			// 
 			this->AutoScaleDimensions = System::Drawing::SizeF(6, 13);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
 			this->ClientSize = System::Drawing::Size(415, 261);
-			this->Controls->Add(this->textBox1);
-			this->Controls->Add(this->label6);
 			this->Controls->Add(this->label5);
-			this->Controls->Add(this->checkedListBox1);
+			this->Controls->Add(this->textBox1);
+			this->Controls->Add(this->button2);
+			this->Controls->Add(this->label8);
+			this->Controls->Add(this->numericUpDown5);
+			this->Controls->Add(this->label7);
+			this->Controls->Add(this->numericUpDown4);
 			this->Controls->Add(this->button1);
 			this->Controls->Add(this->numericUpDown3);
 			this->Controls->Add(this->numericUpDown2);
@@ -222,7 +259,6 @@ namespace ConsoleApplication1 {
 			this->Controls->Add(this->label4);
 			this->Controls->Add(this->label3);
 			this->Controls->Add(this->label2);
-			this->Controls->Add(this->checkBox2);
 			this->Controls->Add(this->checkBox1);
 			this->Controls->Add(this->label1);
 			this->Name = L"SeleccionarParametres";
@@ -231,6 +267,8 @@ namespace ConsoleApplication1 {
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->numericUpDown1))->EndInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->numericUpDown2))->EndInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->numericUpDown3))->EndInit();
+			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->numericUpDown4))->EndInit();
+			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->numericUpDown5))->EndInit();
 			this->ResumeLayout(false);
 			this->PerformLayout();
 
@@ -244,5 +282,10 @@ namespace ConsoleApplication1 {
 				 r->ShowDialog();
 				 this->Close();
 			 }
+
+private: System::Void button2_Click(System::Object^  sender, System::EventArgs^  e) {
+			 this->folderBrowserDialog1->ShowDialog();
+			 this->textBox1->Text = this->folderBrowserDialog1->SelectedPath;
+		 }
 };
 }
