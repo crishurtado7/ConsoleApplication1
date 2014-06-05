@@ -1,5 +1,8 @@
 #pragma once
 #include "Progres.h"
+#include <iostream>
+#include <fstream>
+#include <string>
 
 namespace ConsoleApplication1 {
 
@@ -276,8 +279,17 @@ namespace ConsoleApplication1 {
 #pragma endregion
 	private: System::Void SeleccionarParametres_Load(System::Object^  sender, System::EventArgs^  e) {
 			 }
+			 void MarshalString ( String ^ s, std::string& os ) {
+					using namespace Runtime::InteropServices;
+					const char* chars = 
+					(const char*)(Marshal::StringToHGlobalAnsi(s)).ToPointer();
+					os = chars;
+					Marshal::FreeHGlobal(IntPtr((void*)chars));
+			 }
 	private: System::Void boto_Continuar(System::Object^  sender, System::EventArgs^  e) {
-				 Progres^ r = gcnew Progres();
+				 std::string path;
+				 MarshalString(textBox1->Text, path);
+				 Progres^ r = gcnew Progres(int(numericUpDown1->Value), int(numericUpDown2->Value), int(numericUpDown3->Value), float(numericUpDown4->Value), checkBox1->Checked, path);
 				 this->Hide();
 				 r->ShowDialog();
 				 this->Close();

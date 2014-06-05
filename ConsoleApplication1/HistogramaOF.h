@@ -4,13 +4,8 @@
 using namespace cv;
 using namespace std;
 
-const int MOVIMENT_PLA = 4;
-const int MOVIMENT_ALT = 3;
-const int ESPAI_X = 3;
-const int ESPAI_Y = 3;
-const int ESPAI_Z = 3;
-
-typedef float ContingutHOF [ESPAI_X] [ESPAI_Y] [ESPAI_Z] [MOVIMENT_PLA] [MOVIMENT_ALT];
+//typedef float ContingutHOF [ESPAI_X] [ESPAI_Y] [ESPAI_Z] [MOVIMENT_PLA] [MOVIMENT_ALT];
+typedef float ContingutHOF [3] [3] [3] [4] [3];
 //typedef float ContingutHOF [MOVIMENT_PLA] [MOVIMENT_Z];
 
 class HistogramaOF {
@@ -19,6 +14,7 @@ class HistogramaOF {
 		ContingutHOF dades; // Histograma d' Optical Flow
 		float maxValor;
 		float sumaValors;
+		Mat repr;
 		// Funcions
 		HistogramaOF();
 		void inicialitzaHistograma();
@@ -31,7 +27,7 @@ class HistogramaOF {
 		int calculaFactor(float valor, float maxim, float minim);
 		Mat representaHistograma();
 		Mat calcularHistogramaOF(Mat& frame1, Mat& frame2, Mat frame1_d, Mat frame2_d);
-		Mat calcularHistogramaAcumulatOF(String path, int num_imatges, String nom_activitat, int num_repeticio);
+		Mat calcularHistogramaAcumulatOF(String path, int num_imatges, String nom_activitat, int num_repeticio, string ruta, bool video);
 		void escriureFitxer(String nom_fitxer);
 		void llegirFitxer(String nom_fitxer);
 		void normalitzaHOF();
@@ -45,4 +41,3 @@ class HistogramaOF {
 	private:
 	
 };
-

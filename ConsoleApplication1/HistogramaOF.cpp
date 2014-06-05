@@ -15,6 +15,12 @@
 using namespace cv;
 using namespace std;
 
+const int MOVIMENT_PLA = 4;
+const int MOVIMENT_ALT = 3;
+const int ESPAI_X = 3;
+const int ESPAI_Y = 3;
+const int ESPAI_Z = 3;
+
 
 /* Creadora */
 HistogramaOF::HistogramaOF() {
@@ -148,7 +154,7 @@ vector<float> HistogramaOF::discretitzaMovimentAlt(Point3i despl) {
 		factor = (float)calculaFactor(angle, 45, 105)/100;
 		if(angle <= 127.5) {
 			movAlt.at(1) = factor*mod;
-			movAlt.at(2) = (1-factor)*mod;
+			movAlt.at(2) = (1-factor*mod);
 		}
 		else {
 			movAlt.at(2) = factor*mod;
@@ -186,8 +192,8 @@ int HistogramaOF::discretitzaEspaiZ(Point3i pos) {
 
 /* Funció que calcula la intensitat del color que haurà de tenir l'histograma segons un dels seus valors */
 int HistogramaOF::calculaFactor(float valor, float maxim, float minim) {
-	float perc = (valor - minim)/maxim;
-	//cout << "Valor: " << valor << "   MaxValor: " << maxValor << endl;
+	float perc = 0;
+	if(maxim != 0) perc = (valor - minim)/maxim;
 	perc = perc*100;
 	int res = perc;
 	return res;
@@ -236,7 +242,7 @@ Mat HistogramaOF::representaHistograma() {
 		}
 	}
 	printf("Temps representació histograma: %lf sec\n", (getTickCount() - start) / getTickFrequency());
-
+	repr = representacio;
 	return representacio;
 }
 
@@ -266,12 +272,13 @@ Mat HistogramaOF::calcularHistogramaOF(Mat& frame1, Mat& frame2, Mat frame1_d, M
 		for(int j = 0; j < mov_pla.size(); ++j) {
 			for(int k = 0; k < mov_alt.size(); ++k) {
 				if(mov_pla.at(j) > 0 && mov_alt.at(k) > 0) {
+					/*float modul = sqrt(des.x*des.x + des.y*des.y + des.z*des.z);
+					float valor = mov_pla.at(j)*mov_alt.at(k)*modul;*/
+					//dades[espai_x][espai_y][espai_z][j][k] = valor;
 					dades[espai_x][espai_y][espai_z][j][k] += mov_pla.at(j);
 					dades[espai_x][espai_y][espai_z][j][k] += mov_alt.at(k);
-					//dades[espai_x][espai_y][espai_z][j][k]++;
 					if(dades[espai_x][espai_y][espai_z][j][k] > maxValor) maxValor = dades[espai_x][espai_y][espai_z][j][k];
 					sumaValors  = sumaValors + mov_pla.at(j) + mov_alt.at(k);
-					//sumaValors++;
 				}
 			}
 		}
@@ -294,20 +301,22 @@ Mat HistogramaOF::calcularHistogramaOF(Mat& frame1, Mat& frame2, Mat frame1_d, M
 }
 
 /* Funció que calcula l'histograma acumulat (per separat) de cada una de les execucions d'una activitat */
-Mat HistogramaOF::calcularHistogramaAcumulatOF(String path, int num_imatges, String nom_activitat, int num_repeticio) {
+Mat HistogramaOF::calcularHistogramaAcumulatOF(String path, int num_imatges, String nom_activitat, int num_repeticio, string ruta, bool video) {
 	String nomVideo, nomImatgeRGBa, nomImatgeDa, nomImatgeRGBb, nomImatgeDb;
-	//VideoWriter outputVideo;
-	//double fps = 15;
-	//CvSize mida = cvSize(399, 240);
+	VideoWriter outputVideo;
+	if(video) {
+		double fps = 15;
+		CvSize mida = cvSize(399, 240);
+		nomVideo = ruta+"/"+nom_activitat+"_acumulat_"+to_string(num_repeticio)+".avi";
+		outputVideo.open(nomVideo, 0, fps, mida, true);
+	}
 	Mat imageA, depthA, imageB, depthB, resultat;
-	//nomVideo = nom_activitat+"_acumulat_"+to_string(j)+".avi";
-	//outputVideo.open(nomVideo, 0, fps, mida, true);
 	nomImatgeRGBa = path+"/c_0.png";
 	nomImatgeDa = path+"/d_0.png";
 	imageA = imread(nomImatgeRGBa, IMREAD_COLOR);
 	depthA = imread(nomImatgeDa, IMREAD_GRAYSCALE);
 	resultat = calcularHistogramaOF(imageA, imageA, depthA, depthA);
-	//outputVideo << resultat;
+	if(video) outputVideo << resultat;
 	for(int k = 1; k <= num_imatges; ++k) {
 		cout << "Imatge: " << num_repeticio << " - " << k << "/" << num_imatges << endl;
 		nomImatgeRGBb = path+"/c_"+to_string(k)+".png";
@@ -315,18 +324,15 @@ Mat HistogramaOF::calcularHistogramaAcumulatOF(String path, int num_imatges, Str
 		imageB = imread(nomImatgeRGBb, IMREAD_COLOR);
 		depthB= imread(nomImatgeDb, IMREAD_GRAYSCALE);
 		resultat = calcularHistogramaOF(imageA, imageB, depthA, depthB);
-		//outputVideo << resultat;
+		if(video) outputVideo << resultat;
 		nomImatgeRGBa = nomImatgeRGBb;
 		nomImatgeDa = nomImatgeDb;
 		imageB.copyTo(imageA);
 		depthB.copyTo(depthA);
 	}
-	String nomImatge = "Histograma Acumulat "+nom_activitat+" "+to_string(num_repeticio)+".png";
-	//inicialitzaHistograma();
-	imwrite(nomImatge, resultat);
-	//outputVideo.release();
+	if(video) outputVideo.release();
 
-	return resultat;
+	return repr;
 }
 
 void HistogramaOF::escriureFitxer(String nom_fitxer) {

@@ -109,8 +109,23 @@ namespace ConsoleApplication1 {
 				 this->folderBrowserDialog1->ShowDialog();
 				 this->textBox1->Text = this->folderBrowserDialog1->SelectedPath;
 			 }
+
+			void MarshalString (System::String ^ s, std::string& os ) {
+				using namespace Runtime::InteropServices;
+				const char* chars = 
+				(const char*)(Marshal::StringToHGlobalAnsi(s)).ToPointer();
+				os = chars;
+				Marshal::FreeHGlobal(IntPtr((void*)chars));
+			}
+
 	private: System::Void button2_Click(System::Object^  sender, System::EventArgs^  e) {
-				 Resultats^ r = gcnew Resultats();
+				 System::String^ path = textBox1->Text;
+				 Manager m;
+				 std::string p;
+				 MarshalString(path, p);
+				 m.carregaDesdeFitxer(p);
+				 m.calculaConfusionMatrix(p);
+				 Resultats^ r = gcnew Resultats(path);
 				 this->Hide();
 				 r->ShowDialog();
 				 this->Close();

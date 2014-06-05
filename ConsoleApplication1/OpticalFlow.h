@@ -23,5 +23,5 @@ class OpticalFlow {
 		vector<Point3i> getOpticalFlow3DDespl();
 			
 	private:
-		float calculaModul(Point p, Point q);
+		float calculaModul(Point3i p);
 };

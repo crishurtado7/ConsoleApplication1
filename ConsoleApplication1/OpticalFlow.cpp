@@ -20,19 +20,18 @@ OpticalFlow::OpticalFlow() {
 }
 
 /* Funció que calcula el mòdul d'un vector a partir del seu punt origen i el seu punt destí */
-float OpticalFlow::calculaModul(Point p, Point q) {
-	// Calculem les dues components del vector
-	int u = q.x - p.x;
-	int v = q.y - p.y;
+float OpticalFlow::calculaModul(Point3i p) {
 	// Calculem el mòdul del vector
-	int mod = sqrt(u*u + v*v);
+	int mod = sqrt(p.x*p.x + p.y*p.y + p.z*p.z);
 	return mod;
 }
 
 /* Funció que dibuixa una fletxa des de el punt p fins al punt q sobre la imatge "image" */
 void OpticalFlow::drawArrow(Mat image, Point p, Point q, Scalar color, int arrowMagnitude = 2, int thickness=1, int line_type=8, int shift=0) {
 	// Calculem el color que tindrà la fletxa, segons el mòdul que tingui el vector
-	int mod = calculaModul(p, q);
+	int u = q.x-p.x;
+	int v = q.y - p.y;
+	int mod = sqrt(u*u + v*v);
 	if(mod >= 2) color = Scalar(0,0,255); // Vermell
 	else if(mod >= 1 && mod < 2) color = Scalar(0,255,0); // Verd
 	else color = Scalar(255,0,0); // Blau
@@ -141,11 +140,10 @@ Mat OpticalFlow::calcularOpticalFlow3D(Mat& frame1, Mat& frame2, Mat frame1_d, M
 			// AQUI FALTA CONVERTIR EL NIVELL DE GRIS A PIXEL OR SOMETHING
 			// Descartem aquells punts que cauen fora de la imatge registrada per la càmera de profunditats
 			// També descartem aquells punts que tinguin un mòdul massa petit
-			if(grayLevel1 != 0 && grayLevel2 != 0 && calculaModul(points1[i],points2[i]) > 3) {
+			if(grayLevel1 != 0 && grayLevel2 != 0) {
 				// Dibuixar les fletxes per veure el resultat de l'optical flow
 				Point p0( ceil( points1[i].x ), ceil( points1[i].y ) );
 				Point p1( ceil( points2[i].x ), ceil( points2[i].y ) );
-				drawArrow(rgbFrames1, p0, p1, CV_RGB(255, 0, 0));
 				// Creem el punt 3D
 				// AQUI FALTARIA CONVERTIR EL PUNT AL SISTEMA DE COORDENADES DE LA PERSONA
 				xA = (int(points1[i].x) - origen.x)*-1;
@@ -158,9 +156,12 @@ Mat OpticalFlow::calcularOpticalFlow3D(Mat& frame1, Mat& frame2, Mat frame1_d, M
 				Point3i desp(xB - xA, yB - yA, zB - zA);
 				//Point3i inici(int(points1[i].x), int(points1[i].y), grayLevel1);
 				//Point3i desp(int(points2[i].x) - int(points1[i].x), int(points2[i].y) - int(points1[i].y), grayLevel2 - grayLevel1);
-				this->OpticalFlow3DInici.push_back(inici);
-				this->OpticalFlow3DDespl.push_back(desp);
-				this->size = (this->size) + 1;
+				if(/*calculaModul(desp)*/ sqrt(desp.x*desp.x + desp.z*desp.z) > 3) {
+					drawArrow(rgbFrames1, p0, p1, CV_RGB(255, 0, 0));
+					this->OpticalFlow3DInici.push_back(inici);
+					this->OpticalFlow3DDespl.push_back(desp);
+					this->size = (this->size) + 1;
+				}
 				//cout << "Punt " << i << ": " << xA << "    " << yA << "     " << zA << endl;
 			}
 		}

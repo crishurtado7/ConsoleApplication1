@@ -1,6 +1,9 @@
 #pragma once
 #include "Resultats.h"
 #include "Manager.h"
+#include <iostream>
+#include <fstream>
+#include <string>
 
 namespace ConsoleApplication1 {
 
@@ -10,6 +13,7 @@ namespace ConsoleApplication1 {
 	using namespace System::Windows::Forms;
 	using namespace System::Data;
 	using namespace System::Drawing;
+	using namespace std;
 
 	/// <summary>
 	/// Resumen de Progres
@@ -18,10 +22,23 @@ namespace ConsoleApplication1 {
 	{
 	private: System::Windows::Forms::Timer^  timer1;
 	public:
+		int divX, divY, divZ;
+		float mod;
+		bool vid;
+		System::String^ pa;
 		Manager f;
-		Progres(void)
-		{
+		Progres(void) {
 			InitializeComponent();
+			timer1->Start();
+		}
+		Progres(int div_x, int div_y, int div_z, float modul, bool video, string path) {
+			InitializeComponent();
+			divX = div_x;
+			divY = div_y;
+			divZ = div_z;
+			mod = modul;
+			vid = video;
+			pa = gcnew System::String(path.c_str());
 			timer1->Start();
 		}
 
@@ -98,10 +115,34 @@ namespace ConsoleApplication1 {
 
 		}
 #pragma endregion
-	private: System::Void timer1_Tick(System::Object^  sender, System::EventArgs^  e) {
-				 if(f.com == false) f.calculaHistogrames();
+	private: 
+		void MarshalString ( System::String ^ s, std::string& os ) {
+			using namespace Runtime::InteropServices;
+			const char* chars = 
+			(const char*)(Marshal::StringToHGlobalAnsi(s)).ToPointer();
+			os = chars;
+			Marshal::FreeHGlobal(IntPtr((void*)chars));
+		}
+		System::Void timer1_Tick(System::Object^  sender, System::EventArgs^  e) {
+				 ofstream myfile;
+				 std::string path;
+				 MarshalString(pa, path);
+				 myfile.open (path+"/Parametres.txt");
+				 myfile << "Paràmetres utilitzats per al càlcul dels descriptors: \n";
+				 myfile << "Divisió en X: " << divX << "\n";
+				 myfile << "Divisió en Y: " << divY << "\n";
+				 myfile << "Divisió en Z: " << divZ << "\n";
+				 myfile << "Mòdul: " << mod << "\n";
+				 std::string v;
+				 if(vid) v = "Si";
+				 else v = "No";
+				 myfile << "Gravació de video: " << v << "\n";
+				 myfile.close();
+				 if(f.com == false) f.calculaHistogrames(divX, divY, divZ, mod, vid, path);
 				 this->timer1->Stop();
-				 Resultats^ r = gcnew Resultats();
+				 //Calcular i guardar Confusion Matrix
+				 f.calculaConfusionMatrix(path);
+				 Resultats^ r = gcnew Resultats(pa);
 				 this->Hide();
 				 r->ShowDialog();
 				 this->Close();

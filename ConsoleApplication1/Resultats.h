@@ -1,5 +1,8 @@
 #pragma once
 #include "ConfusionMatrix.h"
+#include <Windows.h>
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
 
 namespace ConsoleApplication1 {
 
@@ -16,12 +19,17 @@ namespace ConsoleApplication1 {
 	public ref class Resultats : public System::Windows::Forms::Form
 	{
 	public:
+		System::String^ path;
 		Resultats(void)
 		{
 			InitializeComponent();
 			//
 			//TODO: agregar código de constructor aquí
 			//
+		}
+		Resultats(System::String^ path) {
+			this->path = path;
+			InitializeComponent();
 		}
 
 	protected:
@@ -72,7 +80,7 @@ namespace ConsoleApplication1 {
 			this->listBox1->TabIndex = 1;
 			this->listBox1->SelectedIndexChanged += gcnew System::EventHandler(this, &Resultats::listBox1_SelectedIndexChanged);
 			listBox1->Items->Clear();
-			this->listBox1->Items->AddRange(gcnew cli::array< System::Object^  >(18) {L"Histograma_cut_1", L"Histograma_cut_2", L"Histograma_cut_3", L"Histograma_cut_4", L"Histograma_cut_5", L"Histograma_eat_1", L"Histograma_eat_2", L"Histograma_eat_3", L"Histograma_eat_4", L"Histograma_eat_5", L"Histograma_stir_1", L"Histograma_stir_2", L"Histograma_stir_3", L"Histograma_stir_4", L"Histograma_stir_5", L"Histograma_mitjana_cut", L"Histograma_mitjana_eat", L"Histograma_mitjana_stir"});
+			this->listBox1->Items->AddRange(gcnew cli::array< System::Object^  >(15) {L"Histograma_acumulat_cut_1", L"Histograma_acumulat_cut_2", L"Histograma_acumulat_cut_3", L"Histograma_acumulat_cut_4", L"Histograma_acumulat_cut_5", L"Histograma_acumulat_eat_1", L"Histograma_acumulat_eat_2", L"Histograma_acumulat_eat_3", L"Histograma_acumulat_eat_4", L"Histograma_acumulat_eat_5", L"Histograma_acumulat_stir_1", L"Histograma_acumulat_stir_2", L"Histograma_acumulat_stir_3", L"Histograma_acumulat_stir_4", L"Histograma_acumulat_stir_5"});
 			
 			// 
 			// pictureBox1
@@ -112,7 +120,7 @@ namespace ConsoleApplication1 {
 	private: System::Void listBox1_SelectedIndexChanged(System::Object^  sender, System::EventArgs^  e) {
 				//Mostrem la imatge seleccionada
 				// Obtenim l'index de la imatge, agafem el nom de la llista i la mostrem
-				 System::String^ nom = "./" + this->listBox1->SelectedItem->ToString() + ".png";
+				 System::String^ nom = path + "/" + this->listBox1->SelectedItem->ToString() + ".png";
 				 this->pictureBox1->ImageLocation = nom;
 				 this->pictureBox1->Load();
 			 }

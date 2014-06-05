@@ -21,9 +21,6 @@
     <ClCompile Include="OpticalFlow.cpp">
       <Filter>Archivos de código fuente</Filter>
     </ClCompile>
-    <ClCompile Include="HistogramaOF.cpp">
-      <Filter>Archivos de código fuente</Filter>
-    </ClCompile>
     <ClCompile Include="Classificador.cpp">
       <Filter>Archivos de código fuente</Filter>
     </ClCompile>
@@ -48,15 +45,15 @@
     <ClCompile Include="SeleccionarCarpeta.cpp">
       <Filter>Archivos de código fuente</Filter>
     </ClCompile>
+    <ClCompile Include="HistogramaOF.cpp">
+      <Filter>Archivos de código fuente</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Constants.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
     <ClInclude Include="OpticalFlow.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="HistogramaOF.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
     <ClInclude Include="Classificador.h">
@@ -83,6 +80,9 @@
     <ClInclude Include="SeleccionarCarpeta.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
+    <ClInclude Include="HistogramaOF.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="SeleccionarParametres.resx">
@@ -98,6 +98,9 @@
       <Filter>Archivos de recursos</Filter>
     </EmbeddedResource>
     <EmbeddedResource Include="Resultats.resx">
+      <Filter>Archivos de recursos</Filter>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SeleccionarCarpeta.resx">
       <Filter>Archivos de recursos</Filter>
     </EmbeddedResource>
   </ItemGroup>

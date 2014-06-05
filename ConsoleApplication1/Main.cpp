@@ -13,8 +13,12 @@
 
  int main( int argc, char** argv ) {
 	 /* Càlcul de l'histograma acumulat per cada execució de l'activitat */
+	 HistogramaOF hof = HistogramaOF();
+	 Mat representacio = hof.representaHistograma();
+	 imwrite("ReprHist.png", representacio);
+	 imshow("Representacio", representacio);
 	 float start = (float)getTickCount();
-	 HistogramaOF HOF;
+	 /*HistogramaOF HOF;
 	 String activitats[] = {"cut", "eat", "stir"};
 	 vector<HOFrepeticions> HOFactivitats;
 	 Mat histogramaAcumulat;
@@ -32,7 +36,7 @@
 	 imshow("Res", imageA);*/
 
 
-	for(int i = 0; i < NUMERO_ACTIVITATS; ++i) {
+	/*for(int i = 0; i < NUMERO_ACTIVITATS; ++i) {
 		 nomActivitat = activitats[i];
 		 vec.clear();
 		 for(int j = 0; j < REPETICIONS_ACTIVITAT; ++j) vec.push_back(HistogramaOF());
@@ -180,7 +184,7 @@
 	 aux.calculaGrauSimilitud(HOFactivitats.at(2).second.at(2), stir);
 	 aux.calculaGrauSimilitud(HOFactivitats.at(2).second.at(3), stir);
 	 aux.calculaGrauSimilitud(HOFactivitats.at(2).second.at(4), stir); 
-	
+	*/
 	 printf("Temps total càlcul histogrames + comparacions amb grau de similitud: %lf sec\n", (getTickCount() - start) / getTickFrequency());
 
 	waitKey(0); // Wait for a keystroke in the window
