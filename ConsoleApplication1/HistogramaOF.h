@@ -18,6 +18,7 @@ class HistogramaOF {
 		// Funcions
 		HistogramaOF();
 		void inicialitzaHistograma();
+		void construirHistograma();
 		float calculaModul(Point3i p);
 		vector<float> discretitzaMovimentPla(Point3i despl);
 		vector<float> discretitzaMovimentAlt(Point3i despl);

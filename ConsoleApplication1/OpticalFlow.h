@@ -17,6 +17,7 @@ class OpticalFlow {
 		void CannyThreshold(int, void*);
 		Mat aplicarCanny(Mat frame1, Mat frame1_d);
 		Mat calcularMascara(Mat frame_d);
+		Point3f transformaCoordenades(Point3f p, int width, int height);
 		Mat calcularOpticalFlow3D(Mat& frame1, Mat& frame2, Mat frame1_d, Mat frame2_d);
 		int getSize();
 		vector<Point3i> getOpticalFlow3DInici();

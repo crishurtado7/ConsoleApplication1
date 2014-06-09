@@ -60,12 +60,34 @@ Mat OpticalFlow::calcularMascara(Mat frame_d) {
 	double maxval = 255;
 	// Binaritzem la imatge. Només volem separar entre els valors que són 0 (negre) dels que no ho són
 	threshold(frame_d, result, thresh, maxval, THRESH_BINARY);
-	/*Mat aux;
-	cvtColor(result, aux, CV_GRAY2RGB);
-	Point p(180, 200);
-	drawArrow(aux, p, p, Scalar(0, 0, 255));*/
-	//imshow("Màscara", result);
 	return result;
+}
+
+/* Funció que transforma un punt de coordenades de càmera a coordenades de món */
+Point3f OpticalFlow::transformaCoordenades(Point3f p, int width, int height) {
+	float nivell_gris = 124.5;
+	float mm = 1000;
+	float Ox = width/2;
+	float Oy = height/2;
+	float INVERS_LAMBDA = 2.0/525.0;
+	// Passem de coordenades de píxel a coordenades de món (passant per coordenades de càmera)
+	float z_world = (p.z*mm)/nivell_gris;
+	float x_world = (p.x - Ox)*z_world*INVERS_LAMBDA;
+	float y_world = (p.y - Oy)*z_world*INVERS_LAMBDA;
+	// Passem al sistema de coordenades que volem
+	float z_origen = (Z_CAMERA*mm)/nivell_gris;
+	float x_origen = (ORIGENX - Ox)*z_origen*INVERS_LAMBDA;
+	float y_origen = (ORIGENY - Oy)*z_origen*INVERS_LAMBDA;
+
+	float mat[12] = {-1.0, 0, 0, x_origen, 0, 0, -1, z_origen, 0, -1, 0, y_origen};
+	Mat transformacio(3, 4, CV_32FC1, mat);
+	Mat vector = (Mat_<float>(4,1) << x_world, y_world, z_world, 1);
+	Mat res = transformacio*vector;
+	Point3f coord_world;
+	coord_world.x = res.at<float>(0, 0);
+	coord_world.y = res.at<float>(1, 0);
+	coord_world.z = res.at<float>(2, 0);
+	return coord_world;
 }
 
 /* Funció que calcula l'optical flow 3D entre dos frames consecutius */
@@ -140,23 +162,19 @@ Mat OpticalFlow::calcularOpticalFlow3D(Mat& frame1, Mat& frame2, Mat frame1_d, M
 			// AQUI FALTA CONVERTIR EL NIVELL DE GRIS A PIXEL OR SOMETHING
 			// Descartem aquells punts que cauen fora de la imatge registrada per la càmera de profunditats
 			// També descartem aquells punts que tinguin un mòdul massa petit
-			if(grayLevel1 != 0 && grayLevel2 != 0) {
-				// Dibuixar les fletxes per veure el resultat de l'optical flow
+			if(grayLevel1 != 0 && grayLevel2 != 0 && abs(grayLevel1 - grayLevel2) < 5) {
+				// Dibuixar les fletxes per veure el resultat de l'optical flow 2D
 				Point p0( ceil( points1[i].x ), ceil( points1[i].y ) );
 				Point p1( ceil( points2[i].x ), ceil( points2[i].y ) );
 				// Creem el punt 3D
-				// AQUI FALTARIA CONVERTIR EL PUNT AL SISTEMA DE COORDENADES DE LA PERSONA
-				xA = (int(points1[i].x) - origen.x)*-1;
-				xB = (int(points2[i].x) - origen.x)*-1;
-				yA = grayLevel1;
-				yB = grayLevel2;
-				zA = (int(points1[i].y) - origen.y)*-1;
-				zB = (int(points2[i].y) - origen.y)*-1;
-				Point3i inici(xA, yA, zA);
-				Point3i desp(xB - xA, yB - yA, zB - zA);
-				//Point3i inici(int(points1[i].x), int(points1[i].y), grayLevel1);
-				//Point3i desp(int(points2[i].x) - int(points1[i].x), int(points2[i].y) - int(points1[i].y), grayLevel2 - grayLevel1);
-				if(/*calculaModul(desp)*/ sqrt(desp.x*desp.x + desp.z*desp.z) > 3) {
+				// Convertim al sistema de coordenades respecte la persona
+				Point3f point1(points1[i].x, points1[i].y, grayLevel1);
+				Point3f point2(points2[i].x, points2[i].y, grayLevel2);
+
+				Point3i inici = transformaCoordenades(point1, frame1.cols, frame1.rows);
+				Point3i aux = transformaCoordenades(point2, frame1.cols, frame1.rows);
+				Point3i desp(aux.x - inici.x, aux.y - inici.y, aux.z - inici.z);
+				if(/*calculaModul(desp) > 15*/ sqrt(desp.x*desp.x + desp.z*desp.z) > 2 && abs(desp.y) < 15) {
 					drawArrow(rgbFrames1, p0, p1, CV_RGB(255, 0, 0));
 					this->OpticalFlow3DInici.push_back(inici);
 					this->OpticalFlow3DDespl.push_back(desp);

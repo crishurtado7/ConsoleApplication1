@@ -60,64 +60,15 @@ int signe(int x) {
 
 /* Funció que discretitza un vector de desplaçament segons el seu moviment en el pla */
 vector<float> HistogramaOF::discretitzaMovimentPla(Point3i despl) {
-	// Càlcul de l'angle d'Azimut
-	double angle = 0;
-	if(despl.x > 0 && despl.y > 0) angle = atan(despl.y/despl.x);
-	else if(despl.x > 0 && despl.y < 0) angle = 2*M_PI + atan(despl.y/despl.x);
-	else if(despl.x == 0) angle = (M_PI/2)*signe(despl.y);
-	else if(despl.x < 0) angle = M_PI + atan(despl.y/despl.x);
-	angle = angle*180.0/M_PI;
-	if(angle < 0) angle = angle + 360;
-	int pos = 0;
-	// Discretització de la posició en 4 sectors
+	// Si el gradient de x es positiu, sumem dreta. Si es negatiu, sumem esquerre (en valor absolut)
+	// Si el gradient de y es positiu sumem endavant. Si es negatiu, sumem enrere (en valor absolut)
 	vector<float> movPla;
-	float factor;
-	float mod = calculaModul(despl);
 	for(int i = 0; i < 4; ++i) movPla.push_back(0.0);
-	if(angle >= 0 && angle <= 90) { //Endavant - Dreta
-		factor = (float)calculaFactor(angle, 90, 0)/100;
-		if(angle <= 45) {
-			movPla.at(1) = factor*mod;
-			movPla.at(0) = (1-factor)*mod;
-		}
-		else {
-			movPla.at(0) = factor*mod;
-			movPla.at(1) = (1-factor)*mod;
-		}
-	}
-	else if(angle > 90 && angle <= 180) { //Endavant - Esquerre
-		factor = (float)calculaFactor(angle, 90, 90)/100;
-		if(angle <= 135) {
-			movPla.at(0) = factor*mod;
-			movPla.at(3) = (1-factor)*mod;
-		}
-		else {
-			movPla.at(3) = factor*mod;
-			movPla.at(0) = (1-factor)*mod;
-		}
-	}
-	else if(angle > 180 && angle <= 270) { //Enrere - Esquerre
-		factor = (float)calculaFactor(angle, 90, 180)/100;
-		if(angle <= 225) {
-			movPla.at(3) = factor*mod;
-			movPla.at(2) = (1-factor)*mod;
-		}
-		else {
-			movPla.at(2) = factor*mod;
-			movPla.at(3) = (1-factor)*mod;
-		}
-	}
-	else { //Enrere - Dreta
-		factor = (float)calculaFactor(angle, 90, 270)/100;
-		if(angle <= 315) {
-			movPla.at(2) = factor*mod;
-			movPla.at(1) = (1-factor)*mod;
-		}
-		else {
-			movPla.at(1) = factor*mod;
-			movPla.at(2) = (1-factor)*mod;
-		}
-	}
+	if(despl.x >= 0) movPla.at(1) = despl.x;
+	else movPla.at(3) = abs(despl.x);
+
+	if(despl.y >= 0) movPla.at(0) = despl.y;
+	else movPla.at(2) = abs(despl.y);
 	//0 endavant, 1 dreta, 2 enrere, 3 esquerre
 	return movPla;
 }
@@ -126,7 +77,6 @@ vector<float> HistogramaOF::discretitzaMovimentPla(Point3i despl) {
 vector<float> HistogramaOF::discretitzaMovimentAlt(Point3i despl) {
 	// Càlcul de l'angle de colatitud
 	double angle = 0;
-	// El càlcul del primer i l'últim no es correcte
 	if(despl.z > 0) angle = atan((sqrt(despl.x*despl.x + despl.y*despl.y))/despl.z)*180.0/M_PI;
 	else if(despl.z == 0) angle = M_PI/2*180.0/M_PI;
 	else angle = (M_PI + atan((sqrt(despl.x*despl.x + despl.y*despl.y))/despl.z))*180.0/M_PI;
@@ -135,12 +85,12 @@ vector<float> HistogramaOF::discretitzaMovimentAlt(Point3i despl) {
 	// Discretització de la posició en 3 sectors
 	vector<float> movAlt;
 	float factor;
-	float mod = sqrt(despl.y*despl.y + despl.z*despl.z);
+	float mod = abs(despl.z);
 	for(int i = 0; i < 3; ++i) movAlt.push_back(0.0);
 	if(angle < 30) movAlt.at(0) = mod; //Amunt
-	else if(angle >= 30 && angle <= 75) { //Amunt - Pla
-		factor = (float)calculaFactor(angle, 45, 30)/100;
-		if(angle <= 55.5) {
+	else if(angle >= 30 && angle <= 90) { //Amunt - Pla
+		factor = (float)calculaFactor(angle, 60, 30)/100;
+		if(angle <= 60) {
 			movAlt.at(1) = factor*mod;
 			movAlt.at(0) = (1-factor)*mod;
 		}
@@ -149,16 +99,15 @@ vector<float> HistogramaOF::discretitzaMovimentAlt(Point3i despl) {
 			movAlt.at(1) = (1-factor)*mod;
 		}
 	}
-	else if(angle > 75 && angle < 105) movAlt.at(1) = mod; //Pla
-	else if(angle >= 105 && angle <= 150) { //Pla - Avall
-		factor = (float)calculaFactor(angle, 45, 105)/100;
-		if(angle <= 127.5) {
-			movAlt.at(1) = factor*mod;
-			movAlt.at(2) = (1-factor*mod);
+	else if(angle > 90 && angle <= 150) { //Pla - Avall
+		factor = (float)calculaFactor(angle, 60, 90)/100;
+		if(angle <= 120) {
+			movAlt.at(2) = factor*mod;
+			movAlt.at(1) = (1-factor*mod);
 		}
 		else {
-			movAlt.at(2) = factor*mod;
-			movAlt.at(1) = (1-factor)*mod;
+			movAlt.at(1) = factor*mod;
+			movAlt.at(2) = (1-factor)*mod;
 		}
 	}
 	else movAlt.at(2) = mod; //Avall
@@ -175,11 +124,8 @@ int HistogramaOF::discretitzaEspaiX(Point3i pos) {
 
 /* Funció que discretitza un vector de posició segons la seva coordenada y a l'espai */
 int HistogramaOF::discretitzaEspaiY(Point3i pos) {
-	/*if(pos.y <= DIVISIO_Y) return 2;
+	if(pos.y <= DIVISIO_Y) return 2;
 	else if(pos.y <= 2*DIVISIO_Y) return 1;
-	else return 0;*/
-	if(pos.y <= 145) return 2;
-	else if(pos.y <= 165) return 1;
 	else return 0;
 }
 
@@ -214,7 +160,7 @@ Mat HistogramaOF::representaHistograma() {
 		// Rang de valors: 155 - 255
 		if(i == 0) s = Scalar(0,0,155); // Vermell
 		else if(i == 1) s = Scalar(0,155,155); // Groc
-		else s = Scalar(155,0,155); // Vermell
+		else s = Scalar(155,0,155); // Lila
 		Scalar sum;
 		nivell = i*(ESPAI_Y*MOVIMENT_ALT*6 + ESPAI_Y*2);
 		pos_y = nivell + 2;
@@ -244,6 +190,26 @@ Mat HistogramaOF::representaHistograma() {
 	printf("Temps representació histograma: %lf sec\n", (getTickCount() - start) / getTickFrequency());
 	repr = representacio;
 	return representacio;
+}
+
+void HistogramaOF::construirHistograma() {
+	maxValor = 0;
+	sumaValors = 0;
+	/*for(int i = 0; i < ESPAI_X; ++i) {*/
+		for(int j = 0; j < ESPAI_Y; ++j) {
+			for(int k = 0; k < ESPAI_Z; ++k) {
+				for(int u = 0; u < MOVIMENT_PLA; ++u) {
+					for(int v = 0; v < MOVIMENT_ALT; ++v) {
+						for(int l = 0; l < 10; ++l) {
+							dades[0][j][k][u][v]++;
+							if(dades[0][j][k][u][v] > maxValor) maxValor = dades[0][j][k][u][v];
+							sumaValors++;
+						}
+					}
+				}
+			}
+		}
+	/*}*/
 }
 
 /* Funció que calcula l'histograma d'Optical Flow entre dos frames consecutius */

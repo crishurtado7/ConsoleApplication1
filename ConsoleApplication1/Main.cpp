@@ -5,19 +5,64 @@
 #include "HistogramaOF.h"
 #include "Constants.h"
 #include "Classificador.h"
+#include "OpticalFlow.h"
 
  using namespace cv;
  using namespace std;
 
  typedef pair<String, vector<HistogramaOF>> HOFrepeticions;
 
+ void drawArrow(Mat image, Point p, Point q, Scalar color, int arrowMagnitude = 2, int thickness=1, int line_type=8, int shift=0) {
+	// Calculem el color que tindrà la fletxa, segons el mòdul que tingui el vector
+	int u = q.x-p.x;
+	int v = q.y - p.y;
+	int mod = sqrt(u*u + v*v);
+	if(mod >= 2) color = Scalar(0,0,255); // Vermell
+	else if(mod >= 1 && mod < 2) color = Scalar(0,255,0); // Verd
+	else color = Scalar(255,0,0); // Blau
+	// Dibuixem la línia principal, de p a q
+    line(image, p, q, color, thickness, line_type, shift);
+    const double PI = 3.141592653;
+    // Calculem l'angle alpha
+    double angle = atan2((double)p.y-q.y, (double)p.x-q.x);
+    // Calculem les coordenades del primer segment
+    p.x = (int) ( q.x +  arrowMagnitude * cos(angle + PI/4));
+    p.y = (int) ( q.y +  arrowMagnitude * sin(angle + PI/4));
+    // Dibuixem el primer segment
+    line(image, p, q, color, thickness, line_type, shift);
+    // Calculem les coordenades del segon segment
+    p.x = (int) ( q.x +  arrowMagnitude * cos(angle - PI/4));
+    p.y = (int) ( q.y +  arrowMagnitude * sin(angle - PI/4));
+    // Dibuixem el segon segment
+    line(image, p, q, color, thickness, line_type, shift);
+}
+
  int main( int argc, char** argv ) {
 	 /* Càlcul de l'histograma acumulat per cada execució de l'activitat */
-	 HistogramaOF hof = HistogramaOF();
-	 Mat representacio = hof.representaHistograma();
-	 imwrite("ReprHist.png", representacio);
-	 imshow("Representacio", representacio);
 	 float start = (float)getTickCount();
+
+	 Mat im = imread("./Activitats/cut/1/c_91.png", IMREAD_COLOR);
+	 Mat im2 = imread("./Activitats/cut/1/c_92.png", IMREAD_COLOR);
+	 Mat d1 = imread("./Activitats/cut/1/d_91.png", IMREAD_GRAYSCALE);
+	 Mat d2 = imread("./Activitats/cut/1/d_92.png", IMREAD_GRAYSCALE);
+	 /*OpticalFlow of = OpticalFlow();
+	 Mat res = of.calcularOpticalFlow3D(im, im2, d1, d2);
+	 imshow("Resultat", res);
+	 vector<Point3i> ini = of.getOpticalFlow3DInici();
+	 vector<Point3i> despl = of.getOpticalFlow3DDespl();
+	 for(int i = 0; i < ini.size(); ++i) {
+		cout << "Ini" << endl;
+		cout << "X: " << ini.at(i).x << "  Y: " << ini.at(i).y << "  Z: " << ini.at(i).z << endl;
+		cout << "Despl" << endl;
+		cout << "X: " << despl.at(i).x << "  Y: " << despl.at(i).y << "  Z: " << despl.at(i).z << endl;
+		cout << endl;
+	 }*/
+	 HistogramaOF hof = HistogramaOF();
+	 //Mat rs = hof.calcularHistogramaOF(im, im2, d1, d2);
+	 hof.construirHistograma();
+	 Mat rs = hof.representaHistograma();
+	 imshow("Hist", rs);
+
 	 /*HistogramaOF HOF;
 	 String activitats[] = {"cut", "eat", "stir"};
 	 vector<HOFrepeticions> HOFactivitats;
