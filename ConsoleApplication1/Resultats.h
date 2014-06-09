@@ -12,6 +12,7 @@ namespace ConsoleApplication1 {
 	using namespace System::Windows::Forms;
 	using namespace System::Data;
 	using namespace System::Drawing;
+	using namespace System::Collections::Generic;
 
 	/// <summary>
 	/// Resumen de Resultats
@@ -125,7 +126,7 @@ namespace ConsoleApplication1 {
 				 this->pictureBox1->Load();
 			 }
 	private: System::Void button1_Click(System::Object^  sender, System::EventArgs^  e) {
-				 ConfusionMatrix^ r = gcnew ConfusionMatrix();
+				 ConfusionMatrix^ r = gcnew ConfusionMatrix(path);
 				 this->Hide();
 				 r->ShowDialog();
 				 this->Close();

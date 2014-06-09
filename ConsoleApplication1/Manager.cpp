@@ -77,7 +77,7 @@ void Manager::carregaDesdeFitxer(std::string ruta) {
 	 }
 }
 
-void Manager::calculaConfusionMatrix(std::string path) {
+Mat Manager::calculaConfusionMatrix(std::string path) {
 	 Mat res = Mat::zeros(9, 12*27, CV_32F);
 	 Mat auxx = Mat::zeros(1, 12*27, CV_32F);
 	 Mat labels = Mat::zeros(9, 1, CV_32F);
@@ -112,9 +112,45 @@ void Manager::calculaConfusionMatrix(std::string path) {
 	 Mat labRes = Mat::zeros(6, 1, CV_32F);
 	 labRes = classif.classificar(test);
 
-	 for(int i = 0; i < labRes.cols; ++i) {
-		 for(int j = 0; j < labRes.rows; ++j) {
-			 cout << "Label: " << labRes.at<float>(j, i) << endl;
-		 }
+	 Mat confusionMatrix = Mat::zeros(3, 3, CV_32F);
+	 int label;
+	 int act = 0;
+	 for(int i = 0; i < 6; i+=2) {
+		 label = labRes.at<float>(i, 0);
+		 ++confusionMatrix.at<int>(act, label-1);
+		 label = labRes.at<float>(i+1, 0);
+		 ++confusionMatrix.at<int>(act, label-1);
+		 ++act;
 	 }
+
+	 for(int i = 0; i < confusionMatrix.cols; ++i) {
+		 for(int j = 0; j < confusionMatrix.rows; ++j) {
+			 cout << confusionMatrix.at<int>(j, i) << "  ";
+		 }
+		 cout << endl;
+	 }
+	 ofstream myfile;
+	 myfile.open (path+"/ConfusionMatrix.txt");
+	 myfile << "CONFUSION MATRIX";
+	 myfile << "\nClasse Real/Classe Assignada";
+	 myfile << "\n";
+	 myfile << "\n        C0      C1      C2";
+	 int total = 3*2;
+	 int correctes = 0;
+	 for(int i = 0; i < confusionMatrix.cols; ++i) {
+		myfile << "\nC";
+		myfile << i;
+		for(int j = 0; j < confusionMatrix.rows; ++j) {
+			myfile << "       ";
+			myfile << confusionMatrix.at<int>(i, j);
+			if(i == j) 
+				correctes += confusionMatrix.at<int>(i, j);		
+		}
+	}
+	myfile << "\n";
+	myfile << "\nAccuracy: ";
+	myfile << correctes/total;
+	myfile.close();
+
+	 return confusionMatrix;
 }

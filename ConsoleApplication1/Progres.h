@@ -4,9 +4,12 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
 
 namespace ConsoleApplication1 {
 
+	using namespace cv;
 	using namespace System;
 	using namespace System::ComponentModel;
 	using namespace System::Collections;
@@ -141,7 +144,7 @@ namespace ConsoleApplication1 {
 				 if(f.com == false) f.calculaHistogrames(divX, divY, divZ, mod, vid, path);
 				 this->timer1->Stop();
 				 //Calcular i guardar Confusion Matrix
-				 f.calculaConfusionMatrix(path);
+				 Mat cm = f.calculaConfusionMatrix(path);
 				 Resultats^ r = gcnew Resultats(pa);
 				 this->Hide();
 				 r->ShowDialog();

@@ -279,7 +279,7 @@ namespace ConsoleApplication1 {
 #pragma endregion
 	private: System::Void SeleccionarParametres_Load(System::Object^  sender, System::EventArgs^  e) {
 			 }
-			 void MarshalString ( String ^ s, std::string& os ) {
+			 void MarshalString ( System::String ^ s, std::string& os ) {
 					using namespace Runtime::InteropServices;
 					const char* chars = 
 					(const char*)(Marshal::StringToHGlobalAnsi(s)).ToPointer();

@@ -1,8 +1,11 @@
 #pragma once
 #include "Resultats.h"
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
 
 namespace ConsoleApplication1 {
 
+	using namespace cv;
 	using namespace System;
 	using namespace System::ComponentModel;
 	using namespace System::Collections;
@@ -124,7 +127,7 @@ namespace ConsoleApplication1 {
 				 std::string p;
 				 MarshalString(path, p);
 				 m.carregaDesdeFitxer(p);
-				 m.calculaConfusionMatrix(p);
+				 Mat cm = m.calculaConfusionMatrix(p);
 				 Resultats^ r = gcnew Resultats(path);
 				 this->Hide();
 				 r->ShowDialog();
