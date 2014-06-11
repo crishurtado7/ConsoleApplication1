@@ -10,15 +10,9 @@ typedef float ContingutHOF [3] [3] [3] [4] [3];
 
 class HistogramaOF {
 	public:
-		// Atributs
-		ContingutHOF dades; // Histograma d' Optical Flow
-		float maxValor;
-		float sumaValors;
-		Mat repr;
 		// Funcions
 		HistogramaOF();
 		void inicialitzaHistograma();
-		void construirHistograma();
 		float calculaModul(Point3i p);
 		vector<float> discretitzaMovimentPla(Point3i despl);
 		vector<float> discretitzaMovimentAlt(Point3i despl);
@@ -29,16 +23,15 @@ class HistogramaOF {
 		Mat representaHistograma();
 		Mat calcularHistogramaOF(Mat& frame1, Mat& frame2, Mat frame1_d, Mat frame2_d);
 		Mat calcularHistogramaAcumulatOF(String path, int num_imatges, String nom_activitat, int num_repeticio, string ruta, bool video);
-		void escriureFitxer(String nom_fitxer);
-		void llegirFitxer(String nom_fitxer);
-		void normalitzaHOF();
+		void llegirHistograma(Mat histo);
 		float getValor(int i, int j, int k, int u, int v);
-		void sumaHOF(HistogramaOF hof);
-		void minimHOF(HistogramaOF hof1, HistogramaOF hof2);
-		void mitjanaAritHOF(vector<HistogramaOF> ArrayHOF, String nom_activitat);
-		float calculaGrauSimilitud(HistogramaOF hof1, HistogramaOF hof2);
 		Mat obteVector();
 
 	private:
+		// Atributs
+		ContingutHOF dades; // Histograma d' Optical Flow
+		float maxValor;
+		float sumaValors;
+		Mat repr;
 	
 };

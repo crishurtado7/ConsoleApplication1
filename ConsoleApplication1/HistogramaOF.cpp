@@ -15,12 +15,6 @@
 using namespace cv;
 using namespace std;
 
-const int MOVIMENT_PLA = 4;
-const int MOVIMENT_ALT = 3;
-const int ESPAI_X = 3;
-const int ESPAI_Y = 3;
-const int ESPAI_Z = 3;
-
 
 /* Creadora */
 HistogramaOF::HistogramaOF() {
@@ -48,14 +42,6 @@ void HistogramaOF::inicialitzaHistograma() {
 float HistogramaOF::calculaModul(Point3i p) {
 	// Calculem el mòdul del vector
 	return sqrt(p.x*p.x + p.y*p.y);
-}
-
-int signe(int x) {
-	int s = 0;
-	if(x > 0) s = 1;
-	else if(x == 0) s = 0;
-	else s = -1;
-	return s;
 }
 
 /* Funció que discretitza un vector de desplaçament segons el seu moviment en el pla */
@@ -145,6 +131,7 @@ int HistogramaOF::calculaFactor(float valor, float maxim, float minim) {
 	return res;
 }
 
+/* Funció que retorna la representació gràfica d'un histograma de flux òptic */
 Mat HistogramaOF::representaHistograma() {
 	float start = (float)getTickCount();
 	int rows = ESPAI_X*MOVIMENT_PLA*6 + 2*ESPAI_X + 1;
@@ -190,26 +177,6 @@ Mat HistogramaOF::representaHistograma() {
 	printf("Temps representació histograma: %lf sec\n", (getTickCount() - start) / getTickFrequency());
 	repr = representacio;
 	return representacio;
-}
-
-void HistogramaOF::construirHistograma() {
-	maxValor = 0;
-	sumaValors = 0;
-	/*for(int i = 0; i < ESPAI_X; ++i) {*/
-		for(int j = 0; j < ESPAI_Y; ++j) {
-			for(int k = 0; k < ESPAI_Z; ++k) {
-				for(int u = 0; u < MOVIMENT_PLA; ++u) {
-					for(int v = 0; v < MOVIMENT_ALT; ++v) {
-						for(int l = 0; l < 10; ++l) {
-							dades[0][j][k][u][v]++;
-							if(dades[0][j][k][u][v] > maxValor) maxValor = dades[0][j][k][u][v];
-							sumaValors++;
-						}
-					}
-				}
-			}
-		}
-	/*}*/
 }
 
 /* Funció que calcula l'histograma d'Optical Flow entre dos frames consecutius */
@@ -266,7 +233,7 @@ Mat HistogramaOF::calcularHistogramaOF(Mat& frame1, Mat& frame2, Mat frame1_d, M
 	return img_matches;
 }
 
-/* Funció que calcula l'histograma acumulat (per separat) de cada una de les execucions d'una activitat */
+/* Funció que calcula l'histograma acumulat de cada una de les execucions d'una activitat */
 Mat HistogramaOF::calcularHistogramaAcumulatOF(String path, int num_imatges, String nom_activitat, int num_repeticio, string ruta, bool video) {
 	String nomVideo, nomImatgeRGBa, nomImatgeDa, nomImatgeRGBb, nomImatgeDb;
 	VideoWriter outputVideo;
@@ -301,52 +268,20 @@ Mat HistogramaOF::calcularHistogramaAcumulatOF(String path, int num_imatges, Str
 	return repr;
 }
 
-void HistogramaOF::escriureFitxer(String nom_fitxer) {
-	ofstream out(nom_fitxer, ios::binary);
-	for(int i = 0; i < ESPAI_X; ++i) {
-		for(int j = 0; j < ESPAI_Y; ++j) {
-			for(int k = 0; k < ESPAI_Z; ++k) {
-				for(int u = 0; u < MOVIMENT_PLA; ++u) {
-					for(int v = 0; v < MOVIMENT_ALT; ++v) {
-						if(out.is_open()) out.write((char *)&dades[i][j][k][u][v], sizeof(float));
-					}
-				}
-			}
-		}
-	}
-	out.close();
-}
-
-void HistogramaOF::llegirFitxer(String nom_fitxer) {
+/* Funció que construeix un histograma a partir d'una matriu que conté tots els valors necessaris */
+void HistogramaOF::llegirHistograma(Mat histo) {
 	maxValor = 0;
 	sumaValors = 0;
-	ifstream in(nom_fitxer, ios::binary);
+	int pos = 0;
 	for(int i = 0; i < ESPAI_X; ++i) {
 		for(int j = 0; j < ESPAI_Y; ++j) {
 			for(int k = 0; k < ESPAI_Z; ++k) {
 				for(int u = 0; u < MOVIMENT_PLA; ++u) {
 					for(int v = 0; v < MOVIMENT_ALT; ++v) {
-						if(in.is_open()) in.read((char *)&dades[i][j][k][u][v], sizeof(float));
+						dades[i][j][k][u][v] = histo.at<float>(0, pos);
 						if(dades[i][j][k][u][v] > maxValor) maxValor = dades[i][j][k][u][v];
 						sumaValors += dades[i][j][k][u][v];
-					}
-				}
-			}
-		}
-	}
-	in.close();
-}
-
-/* Funció que normalitza els valors d'un histograma respecte a la suma total */
-void HistogramaOF::normalitzaHOF() {
-	maxValor = 0;
-	for(int i = 0; i < ESPAI_X; ++i) {
-		for(int j = 0; j < ESPAI_Y; ++j) {
-			for(int k = 0; k < ESPAI_Z; ++k) {
-				for(int u = 0; u < MOVIMENT_PLA; ++u) {
-					for(int v = 0; v < MOVIMENT_ALT; ++v) {
-						dades[i][j][k][u][v] = dades[i][j][k][u][v]/sumaValors;
-						if(dades[i][j][k][u][v] > maxValor) maxValor = dades[i][j][k][u][v];
+						++pos;
 					}
 				}
 			}
@@ -359,84 +294,7 @@ float HistogramaOF::getValor(int i, int j, int k, int u, int v) {
 	return dades[i][j][k][u][v];
 }
 
-/* Funció que suma a l'histograma de la classe els valors de l'histograma passat per paràmetre */
-void HistogramaOF::sumaHOF(HistogramaOF hof) {
-	for(int i = 0; i < ESPAI_X; ++i) {
-		for(int j = 0; j < ESPAI_Y; ++j) {
-			for(int k = 0; k < ESPAI_Z; ++k) {
-				for(int u = 0; u < MOVIMENT_PLA; ++u) {
-					for(int v = 0; v < MOVIMENT_ALT; ++v) {
-						dades[i][j][k][u][v] = dades[i][j][k][u][v] + hof.getValor(i, j, k, u, v);
-						if(dades[i][j][k][u][v] > maxValor) maxValor = dades[i][j][k][u][v];
-					}
-				}
-			}
-		}
-	}
-}
-
-/* Funció que calcula el mínim entre dos histogrames */
-void HistogramaOF::minimHOF(HistogramaOF hof1, HistogramaOF hof2) {
-	maxValor = 0;
-	for(int i = 0; i < ESPAI_X; ++i) {
-		for(int j = 0; j < ESPAI_Y; ++j) {
-			for(int k = 0; k < ESPAI_Z; ++k) {
-				for(int u = 0; u < MOVIMENT_PLA; ++u) {
-					for(int v = 0; v < MOVIMENT_ALT; ++v) {
-						dades[i][j][k][u][v] = min(hof1.getValor(i, j, k, u, v), hof2.getValor(i, j, k, u, v));
-						if(dades[i][j][k][u][v] > maxValor) maxValor = dades[i][j][k][u][v];
-					}
-				}
-			}
-		}
-	}
-}
-
-/* Funció que calcula la mitjana aritmètica entre tots els histogrames de ArrayHOF */
-void HistogramaOF::mitjanaAritHOF(vector<HistogramaOF> ArrayHOF, String nom_activitat) {
-	float valor = 0;
-	for(int i = 0; i < ESPAI_X; ++i) {
-		for(int j = 0; j < ESPAI_Y; ++j) {
-			for(int k = 0; k < ESPAI_Z; ++k) {
-				for(int u = 0; u < MOVIMENT_PLA; ++u) {
-					for(int v = 0; v < MOVIMENT_ALT; ++v) {
-						for(int h = 0; h < ArrayHOF.size(); ++h) valor += ArrayHOF.at(h).getValor(i, j, k, u, v);
-						dades[i][j][k][u][v] = valor/ArrayHOF.size();
-						if(dades[i][j][k][u][v] > maxValor) maxValor = dades[i][j][k][u][v];
-						sumaValors += dades[i][j][k][u][v];
-						valor = 0;
-					}
-				}
-			}
-		}
-	}
-	Mat repr = representaHistograma();
-	//imshow("Histograma mitjana", repr);
-	String nom = "Histograma_mitjana_"+nom_activitat+".png";
-	imwrite(nom, repr);
-}
-
-/* Funció que calcula el grau de similitud entre dos histogrames */
-float HistogramaOF::calculaGrauSimilitud(HistogramaOF hof1, HistogramaOF hof2) {
-	//normalitzaHOF();
-	//hof.normalitzaHOF();
-	minimHOF(hof1, hof2);
-	float grauSimilitud = 0;
-	for(int i = 0; i < ESPAI_X; ++i) {
-		for(int j = 0; j < ESPAI_Y; ++j) {
-			for(int k = 0; k < ESPAI_Z; ++k) {
-				for(int u = 0; u < MOVIMENT_PLA; ++u) {
-					for(int v = 0; v < MOVIMENT_ALT; ++v) {
-						grauSimilitud += dades[i][j][k][u][v];
-					}
-				}
-			}
-		}
-	}
-	cout << "Grau de similitud: " << grauSimilitud << endl;
-	return grauSimilitud;
-}
-
+/* Funció que transforma la estructura de dades de l'histograma en un vector */
 Mat HistogramaOF::obteVector() {
 	int size = SECTORS_X*SECTORS_Y*SECTORS_Z*MOVIMENT_ALT*MOVIMENT_PLA;
 	int pos = 0;

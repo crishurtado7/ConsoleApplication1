@@ -7,19 +7,22 @@
 #include "HistogramaOF.h"
 #include "Constants.h"
 #include "Classificador.h"
+#include "DataController.h"
 
+/* Estructures */
+typedef pair<String, vector<HistogramaOF>> HOFrepeticions;
+vector<HOFrepeticions> HOFactivitats;
 
+/* Creadora */
 Manager::Manager(void) {
 	com = false;
 }
 
-typedef pair<String, vector<HistogramaOF>> HOFrepeticions;
-vector<HOFrepeticions> HOFactivitats;
-
-void Manager::calculaHistogrames(int divX, int divY, int divZ, float mod, bool vid, std::string ruta) {
-		 /* Càlcul de l'histograma acumulat per cada execució de l'activitat */
-	com = true;
-	acabat = false;
+/* Funció que calcula els histogrames acumulats per a cada execució de cada activitat */
+void Manager::calculaHistogrames(bool vid, std::string ruta) {
+	 /* Càlcul de l'histograma acumulat per cada execució de l'activitat */
+	 com = true;
+	 acabat = false;
 	 float start = (float)getTickCount();
 	 HistogramaOF HOF;
 	 String activitats[] = {"cut", "eat", "stir"};
@@ -45,8 +48,9 @@ void Manager::calculaHistogrames(int divX, int divY, int divZ, float mod, bool v
 			 getline(infile, num_imatges);
 			 resultat = HOFactivitats.at(i).second.at(j-1).calcularHistogramaAcumulatOF(p, atoi(num_imatges.c_str()), nomActivitat, j, ruta, vid);
 			String nm = "Histograma_acumulat_"+nomActivitat+"_"+to_string(j);
-			HOFactivitats.at(i).second.at(j-1).escriureFitxer(nm+".txt");
-			imwrite(ruta+"/"+nm+".png", resultat);
+			Mat histo = HOFactivitats.at(i).second.at(j-1).obteVector();
+			dc.guardarHistograma(histo, ruta, nm);
+			dc.guardarImatge(resultat, ruta, nm);
 			
 		 }
 		 infile.close();
@@ -54,6 +58,7 @@ void Manager::calculaHistogrames(int divX, int divY, int divZ, float mod, bool v
 	acabat = true;
 }
 
+/* Funció que carrega les dades dels histogrames de flux òptic des de fitxers */
 void Manager::carregaDesdeFitxer(std::string ruta) {
 	 /* Càrrega dels histogrames desde fitxer */
 	 float start = (float)getTickCount();
@@ -72,11 +77,13 @@ void Manager::carregaDesdeFitxer(std::string ruta) {
 		 HOFactivitats.push_back(hofRep);
 		 for(int j = 1; j <= REPETICIONS_ACTIVITAT; ++j) {
 			String nm = "Histograma_acumulat_"+nomActivitat+"_"+to_string(j);
-			HOFactivitats.at(i).second.at(j-1).llegirFitxer(nm+".txt");
+			Mat histo = dc.llegirHistograma(ruta, nm);
+			HOFactivitats.at(i).second.at(j-1).llegirHistograma(histo);
 		 }
 	 }
 }
 
+/* Funció que calcula una matriu de confusió a partir de les dades dels histogrames de flux òptic */
 Mat Manager::calculaConfusionMatrix(std::string path) {
 	 Mat res = Mat::zeros(9, 12*27, CV_32F);
 	 Mat auxx = Mat::zeros(1, 12*27, CV_32F);
@@ -129,28 +136,15 @@ Mat Manager::calculaConfusionMatrix(std::string path) {
 		 }
 		 cout << endl;
 	 }
-	 ofstream myfile;
-	 myfile.open (path+"/ConfusionMatrix.txt");
-	 myfile << "CONFUSION MATRIX";
-	 myfile << "\nClasse Real/Classe Assignada";
-	 myfile << "\n";
-	 myfile << "\n        C0      C1      C2";
-	 int total = 3*2;
-	 int correctes = 0;
-	 for(int i = 0; i < confusionMatrix.cols; ++i) {
-		myfile << "\nC";
-		myfile << i;
-		for(int j = 0; j < confusionMatrix.rows; ++j) {
-			myfile << "       ";
-			myfile << confusionMatrix.at<int>(i, j);
-			if(i == j) 
-				correctes += confusionMatrix.at<int>(i, j);		
-		}
-	}
-	myfile << "\n";
-	myfile << "\nAccuracy: ";
-	myfile << correctes/total;
-	myfile.close();
+	 
+	 dc.guardarConfusionMatrix(confusionMatrix, path);
 
 	 return confusionMatrix;
+}
+
+/* Funció que carrega les dades d'una Confusion Matrix des de fitxer i les guarda en un string */
+System::String^ Manager::llegirConfusionMatrix(std::string path) {
+	std::string res = dc.llegirConfMatrix(path);
+	System::String^ cm = gcnew System::String(res.c_str());			
+	return cm;
 }

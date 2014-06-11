@@ -16,7 +16,7 @@ OpticalFlow::OpticalFlow() {
 	this->size = 0;
 	origen.x = ORIGENX;
 	origen.y = ORIGENY;
-	origen.z = ORIGENZ;
+	origen.z = Z_CAMERA;
 }
 
 /* Funció que calcula el mòdul d'un vector a partir del seu punt origen i el seu punt destí */
@@ -31,10 +31,7 @@ void OpticalFlow::drawArrow(Mat image, Point p, Point q, Scalar color, int arrow
 	// Calculem el color que tindrà la fletxa, segons el mòdul que tingui el vector
 	int u = q.x-p.x;
 	int v = q.y - p.y;
-	int mod = sqrt(u*u + v*v);
-	if(mod >= 2) color = Scalar(0,0,255); // Vermell
-	else if(mod >= 1 && mod < 2) color = Scalar(0,255,0); // Verd
-	else color = Scalar(255,0,0); // Blau
+	color = Scalar(0,0,255); // Vermell
 	// Dibuixem la línia principal, de p a q
     line(image, p, q, color, thickness, line_type, shift);
     const double PI = 3.141592653;
@@ -174,7 +171,7 @@ Mat OpticalFlow::calcularOpticalFlow3D(Mat& frame1, Mat& frame2, Mat frame1_d, M
 				Point3i inici = transformaCoordenades(point1, frame1.cols, frame1.rows);
 				Point3i aux = transformaCoordenades(point2, frame1.cols, frame1.rows);
 				Point3i desp(aux.x - inici.x, aux.y - inici.y, aux.z - inici.z);
-				if(/*calculaModul(desp) > 15*/ sqrt(desp.x*desp.x + desp.z*desp.z) > 2 && abs(desp.y) < 15) {
+				if(/*calculaModul(desp) > 15*/ sqrt(desp.x*desp.x + desp.z*desp.z) > 3 && abs(desp.y) < 10) {
 					drawArrow(rgbFrames1, p0, p1, CV_RGB(255, 0, 0));
 					this->OpticalFlow3DInici.push_back(inici);
 					this->OpticalFlow3DDespl.push_back(desp);

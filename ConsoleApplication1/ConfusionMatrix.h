@@ -40,10 +40,8 @@ namespace ConsoleApplication1 {
 			ifstream myfile;
 			std::string p;
 			MarshalString(path, p);
-			myfile.open(p+"/ConfusionMatrix.txt");
-			for (std::string line; std::getline(myfile, line); ) 
-				textBox1->Text += gcnew System::String(line.c_str()) + "\r\n";
-			myfile.close();
+			Manager m;
+			textBox1->Text = m.llegirConfusionMatrix(p);
 		}
 
 	protected:

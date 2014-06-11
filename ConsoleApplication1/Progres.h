@@ -25,8 +25,6 @@ namespace ConsoleApplication1 {
 	{
 	private: System::Windows::Forms::Timer^  timer1;
 	public:
-		int divX, divY, divZ;
-		float mod;
 		bool vid;
 		System::String^ pa;
 		Manager f;
@@ -34,12 +32,8 @@ namespace ConsoleApplication1 {
 			InitializeComponent();
 			timer1->Start();
 		}
-		Progres(int div_x, int div_y, int div_z, float modul, bool video, string path) {
+		Progres(bool video, string path) {
 			InitializeComponent();
-			divX = div_x;
-			divY = div_y;
-			divZ = div_z;
-			mod = modul;
 			vid = video;
 			pa = gcnew System::String(path.c_str());
 			timer1->Start();
@@ -127,21 +121,9 @@ namespace ConsoleApplication1 {
 			Marshal::FreeHGlobal(IntPtr((void*)chars));
 		}
 		System::Void timer1_Tick(System::Object^  sender, System::EventArgs^  e) {
-				 ofstream myfile;
 				 std::string path;
 				 MarshalString(pa, path);
-				 myfile.open (path+"/Parametres.txt");
-				 myfile << "Paràmetres utilitzats per al càlcul dels descriptors: \n";
-				 myfile << "Divisió en X: " << divX << "\n";
-				 myfile << "Divisió en Y: " << divY << "\n";
-				 myfile << "Divisió en Z: " << divZ << "\n";
-				 myfile << "Mòdul: " << mod << "\n";
-				 std::string v;
-				 if(vid) v = "Si";
-				 else v = "No";
-				 myfile << "Gravació de video: " << v << "\n";
-				 myfile.close();
-				 if(f.com == false) f.calculaHistogrames(divX, divY, divZ, mod, vid, path);
+				 if(f.com == false) f.calculaHistogrames(vid, path);
 				 this->timer1->Stop();
 				 //Calcular i guardar Confusion Matrix
 				 Mat cm = f.calculaConfusionMatrix(path);

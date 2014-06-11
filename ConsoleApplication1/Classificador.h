@@ -7,13 +7,12 @@ using namespace std;
 
 class Classificador {
 public:
-	// Atributs
-	CvSVM Classify;
-
 	//Funcions
 	Classificador();
-	void conjuntDades(Mat dades);
 	void entrenar(Mat trainingData, Mat labels);
 	Mat classificar(Mat sampleData);
+private:
+	// Atributs
+	CvSVM Classify;
 };
 

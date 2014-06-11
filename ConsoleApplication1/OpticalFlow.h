@@ -5,11 +5,6 @@ using namespace std;
 
 class OpticalFlow {
 	public:
-		// Atributs
-		vector<Point3i> OpticalFlow3DInici;
-		vector<Point3i> OpticalFlow3DDespl;
-		int size;
-		Point3i origen;
 		// Funcions
 		OpticalFlow();
 		void drawArrow(Mat image, Point p, Point q, Scalar color, int arrowMagnitude, int thickness, int line_type, int shift);
@@ -22,7 +17,12 @@ class OpticalFlow {
 		int getSize();
 		vector<Point3i> getOpticalFlow3DInici();
 		vector<Point3i> getOpticalFlow3DDespl();
+		float calculaModul(Point3i p);
 			
 	private:
-		float calculaModul(Point3i p);
+		// Atributs
+		vector<Point3i> OpticalFlow3DInici;
+		vector<Point3i> OpticalFlow3DDespl;
+		int size;
+		Point3i origen;
 };

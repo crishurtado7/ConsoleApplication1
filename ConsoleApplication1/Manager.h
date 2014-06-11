@@ -3,14 +3,21 @@
 #include <iostream>
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
+#include "DataController.h"
 
 ref class Manager {
 public:
+	// Atributs
 	bool com;
-	bool acabat;
+	// Funcions
 	Manager(void);
-	void calculaHistogrames(int divX, int divY, int divZ, float mod, bool vid, std::string ruta);
+	void calculaHistogrames(bool vid, std::string ruta);
 	void carregaDesdeFitxer(std::string ruta);
 	cv::Mat calculaConfusionMatrix(std::string path);
+	System::String^ llegirConfusionMatrix(std::string path);
+private: 
+	// Atributs
+	bool acabat;
+	DataController dc;
 };
 
